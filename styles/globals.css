@@ -118,3 +118,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+
+/* For WebKit browsers (Chrome, Safari, Edge, Opera) */
+.flex-1.overflow-y-auto::-webkit-scrollbar {
+  width: 8px; /* width of the vertical scrollbar */
+  background-color: var(--sidebar); /* background of the scrollbar track */
+}
+
+.flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #333; /* Dark gray/black color for the thumb */
+  border-radius: 4px; /* rounded corners for the thumb */
+  border: 2px solid var(--sidebar); /* Border around the thumb, matching sidebar background */
+}
+
+.flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Slightly lighter on hover */
+}
+
+/* For Firefox (requires a different syntax) */
+.flex-1.overflow-y-auto {
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: #333 var(--sidebar); /* thumb color track color */
+}
