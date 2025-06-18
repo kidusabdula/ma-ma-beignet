@@ -20,6 +20,7 @@ import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isAccountingOpen, setIsAccountingOpen] = useState(false);
+  const [isManufacturingOpen, setIsManufacturingOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] dark">
@@ -131,15 +132,64 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               Users
             </h3>
             <div className="space-y-1">
-              <Link href="/manufacturing">
+              {/* Manufacturing Dropdown */}
+              <div className="space-y-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                  className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                  onClick={() => setIsManufacturingOpen(!isManufacturingOpen)}
                 >
-                  <Users className="h-4 w-4" />
-                  Manufacturing
+                  <Link href="/manufacturing" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Manufacturing
+                  </Link>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isManufacturingOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </Button>
-              </Link>
+                {isManufacturingOpen && (
+                  <div className="pl-8 space-y-1">
+                    <Link href="/manufacturing/bom">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                      >
+                        <FileTextIcon className="h-4 w-4" />
+                        BOM
+                      </Button>
+                    </Link>
+                    <Link href="/manufacturing/production-plan">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                      >
+                        <Receipt className="h-4 w-4" />
+                        Production Plan
+                      </Button>
+                    </Link>
+                    <Link href="/manufacturing/bom-stock-report">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        BOM Stock Report
+                      </Button>
+                    </Link>
+                    <Link href="/manufacturing/production-planning-report">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        Production Planning Report
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
               <Link href="/order">
                 <Button
                   variant="ghost"

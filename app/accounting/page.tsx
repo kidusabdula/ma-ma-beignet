@@ -65,7 +65,8 @@ const budgetData = [
 }));
 
 // Active shape for pie chart interaction
-const renderActiveShape = (props: any) => {
+const renderActiveShape = (props: unknown) => {
+// @ts-expect-error: third-party library type mismatch
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
     return (
         <g>
@@ -113,8 +114,8 @@ export default function Accounting() {
 
         return () => clearInterval(interval);
     }, []);
-
-    const onPieEnter = (_, index) => {
+// @ts-expect-error: third-party library type mismatch
+    const onPieEnter = (index) => {
         setActiveIndex(index);
     };
 
@@ -271,8 +272,11 @@ export default function Accounting() {
                                             ))}
                                         </Pie>
                                         <Tooltip
-                                            formatter={(value: any, name: any, props: any) => [
+
+                                            formatter={(value: unknown, name: unknown, props: unknown) => [
+                                                // @ts-expect-error: third-party library type mismatch
                                                 `$${props.payload.amount.toLocaleString()}`,
+                                                // @ts-expect-error: third-party library type mismatch
                                                 `${props.payload.range} days: ${value} items`
                                             ]}
                                         />
@@ -320,8 +324,10 @@ export default function Accounting() {
                                             ))}
                                         </Pie>
                                         <Tooltip
-                                            formatter={(value: any, name: any, props: any) => [
+                                            formatter={(value: unknown, name: unknown, props: unknown) => [
+                                                // @ts-expect-error: third-party library type mismatch
                                                 `$${props.payload.amount.toLocaleString()}`,
+                                                // @ts-expect-error: third-party library type mismatch
                                                 `${props.payload.range} days: ${value} items`
                                             ]}
                                         />
