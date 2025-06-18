@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { 
+import {
   LayoutDashboard,
   ClipboardList,
   Users,
@@ -14,7 +14,7 @@ import {
   ChevronDown,
   FileText as FileTextIcon,
   Receipt,
-  BookOpen
+  BookOpen,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,12 +27,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <aside className="w-64 p-4 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r border-[var(--sidebar-border)] flex flex-col">
         {/* Logo/Title */}
         <h2 className="text-2xl font-bold mb-8 px-2">Ma Ma Beignet</h2>
-        
+
         {/* Navigation */}
         <nav className="flex-1 space-y-1">
           {/* General Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">General</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              General
+            </h3>
             <div className="space-y-1">
               <Link href="/dashboard">
                 <Button
@@ -48,7 +50,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Tasks Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Tasks</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              Tasks
+            </h3>
             <div className="space-y-1">
               {/* Accounting Dropdown */}
               <div className="space-y-1">
@@ -57,12 +61,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
                   onClick={() => setIsAccountingOpen(!isAccountingOpen)}
                 >
-                  <div className="flex items-center gap-2">
+                  <Link href="/accounting" className="flex items-center gap-2">
                     <ClipboardList className="h-4 w-4" />
                     Accounting
-                  </div>
-                  <ChevronDown 
-                    className={`h-4 w-4 transition-transform ${isAccountingOpen ? 'rotate-180' : ''}`}
+                  </Link>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isAccountingOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </Button>
                 {isAccountingOpen && (
@@ -121,7 +127,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Users Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Users</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              Users
+            </h3>
             <div className="space-y-1">
               <Link href="/manufacturing">
                 <Button
@@ -146,7 +154,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Pages Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Pages</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              Pages
+            </h3>
             <div className="space-y-1">
               <Link href="/assets">
                 <Button
@@ -171,7 +181,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Other Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Other</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+              Other
+            </h3>
             <div className="space-y-1">
               <Link href="/help">
                 <Button
@@ -194,7 +206,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">ausrobdev</p>
-              <p className="text-xs text-muted-foreground">robb@shadonblocks.com</p>
+              <p className="text-xs text-muted-foreground">
+                robb@shadonblocks.com
+              </p>
             </div>
           </div>
         </div>
@@ -203,7 +217,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content with Header - Unchanged */}
       <div className="flex-1 flex flex-col">
         <header className="p-4 bg-[var(--card)] border-b border-[var(--border)] flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-[var(--card-foreground)]">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-[var(--card-foreground)]">
+            Dashboard
+          </h1>
           <div className="space-x-2">
             <Button
               variant="outline"
@@ -225,7 +241,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="p-6 overflow-auto text-[var(--foreground)]">{children}</main>
+        <main className="p-6 overflow-auto text-[var(--foreground)]">
+          {children}
+        </main>
       </div>
     </div>
   );
