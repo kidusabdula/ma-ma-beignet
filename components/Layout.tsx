@@ -15,13 +15,14 @@ import {
   FileText as FileTextIcon,
   Receipt,
   BookOpen,
-  UtensilsCrossed
+  UtensilsCrossed,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isAccountingOpen, setIsAccountingOpen] = useState(false);
   const [isManufacturingOpen, setIsManufacturingOpen] = useState(false);
+  const [isCRMOpen, setIsCRMOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] dark">
@@ -121,15 +122,59 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     Human Resource
                   </Button>
                 </Link>
-                <Link href="/crm">
+
+                {/* CRM Dropdown */}
+                <div className="space-y-1">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                    className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                    onClick={() => setIsCRMOpen(!isCRMOpen)}
                   >
-                    <User className="h-4 w-4" />
-                    CRM
+                    <Link
+                      href="/crm"
+                      className="flex items-center gap-2"
+                    >
+                      <Users className="h-4 w-4" />
+                      CRM
+                    </Link>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${
+                        isCRMOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </Button>
-                </Link>
+                  {isCRMOpen && (
+                    <div className="pl-8 space-y-1">
+                      <Link href="/crm/lead">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <FileTextIcon className="h-4 w-4" />
+                          Lead
+                        </Button>
+                      </Link>
+                      <Link href="/crm/customer">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <Receipt className="h-4 w-4" />
+                          Customer
+                        </Button>
+                      </Link>
+                      <Link href="/crm/sales-analytics">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          Sales Analytics
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

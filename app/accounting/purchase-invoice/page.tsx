@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 
 const mockPurchaseInvoices = [
   {
@@ -69,12 +70,14 @@ export default function PurchaseInvoice() {
           >
             List View
           </Button>
-          <Button
-            variant="default"
-            className="bg-[var(--primary)] text-[var(--primary-foreground)]"
-          >
-            + Add Purchase Invoice
-          </Button>
+          <Link href="/accounting/add-purchase-invoice">
+            <Button
+              variant="default"
+              className="bg-[var(--primary)] text-[var(--primary-foreground)]"
+            >
+              + Add Purchase Invoice
+            </Button>
+          </Link>
         </div>
       </div>
 
