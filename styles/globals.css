@@ -117,8 +117,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  
 }
-
 
 
 /* For WebKit browsers (Chrome, Safari, Edge, Opera) */

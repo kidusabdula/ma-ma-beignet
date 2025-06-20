@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   LineChart,
   Line,
@@ -78,10 +78,10 @@ export default function Dashboard() {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex space-x-2">
-          <Button variant="ghost" className="rounded-md">Overview</Button>
+          {/* <Button variant="ghost" className="rounded-md">Overview</Button>
           <Button variant="ghost" className="rounded-md">Analytics</Button>
           <Button variant="ghost" className="rounded-md">Reports</Button>
-          <Button variant="ghost" className="rounded-md">Notifications</Button>
+          <Button variant="ghost" className="rounded-md">Notifications</Button> */}
         </div>
       </div>
 

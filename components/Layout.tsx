@@ -70,10 +70,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
                     onClick={() => setIsAccountingOpen(!isAccountingOpen)}
                   >
-                    <div className="flex items-center gap-2">
+                    <Link href="/accounting" className="flex items-center gap-2">
                       <ClipboardList className="h-4 w-4" />
                       Accounting
-                    </div>
+                    </Link>
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${
                         isAccountingOpen ? "rotate-180" : ""
