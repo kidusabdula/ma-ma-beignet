@@ -16,10 +16,10 @@ import {
   Receipt,
   BookOpen,
   UtensilsCrossed,
-  // Package,
-  // Box,
-  // ClipboardCheck,
-  // PackagePlus,
+  Package,
+  Box,
+  ClipboardCheck,
+  PackagePlus,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,7 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isAccountingOpen, setIsAccountingOpen] = useState(false);
   const [isManufacturingOpen, setIsManufacturingOpen] = useState(false);
   const [isCRMOpen, setIsCRMOpen] = useState(false);
-  // const [isStockOpen, setIsStockOpen] = useState(false);
+  const [isStockOpen, setIsStockOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] dark">
@@ -266,8 +266,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </h3>
               <div className="space-y-1">
                 {/* Stock Dropdown */}
-                {/* <div className="space-y-1"> */}
-                  {/* <Button
+                <div className="space-y-1">
+                  <Button
                     variant="ghost"
                     className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
                     onClick={() => setIsStockOpen(!isStockOpen)}
@@ -284,7 +284,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   {isStockOpen && (
                     <div className="pl-8 space-y-1">
-                      <Link href="/stock/items">
+                      <Link href="/stock/item">
                         <Button
                           variant="ghost"
                           className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
@@ -313,7 +313,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       </Link>
                     </div>
                   )}
-                </div> */}
+                </div>
                 
                 <Link href="/assets">
                   <Button

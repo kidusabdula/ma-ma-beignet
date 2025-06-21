@@ -32,16 +32,17 @@ export default function ItemPage() {
     name: "",
     group: "",
     variantOf: "",
-    status: "",
+    status: "all", // Changed from empty string to "all"
   });
 
   const handleFilterChange = (field: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
+    const newFilters = { ...filters, [field]: value };
+    setFilters(newFilters);
+
     const filtered = initialItems.filter((item) =>
-      (field === "name" ? item.name.toLowerCase().includes(value.toLowerCase()) : true) &&
-      (field === "group" ? item.group.toLowerCase().includes(value.toLowerCase()) : true) &&
-      (field === "variantOf" ? true : true) && // Placeholder for variant filtering
-      (field === "status" ? item.status === value : true)
+      (newFilters.name ? item.name.toLowerCase().includes(newFilters.name.toLowerCase()) : true) &&
+      (newFilters.group ? item.group.toLowerCase().includes(newFilters.group.toLowerCase()) : true) &&
+      (newFilters.status !== "all" ? item.status === newFilters.status : true)
     );
     setItems(filtered);
   };
@@ -85,7 +86,7 @@ export default function ItemPage() {
             />
           </div>
           <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Has Variants</label>
+            <label className="text-[var(--card-foreground)] block mb-1">Status</label>
             <Select
               value={filters.status}
               onValueChange={(value) => handleFilterChange("status", value)}
@@ -94,7 +95,7 @@ export default function ItemPage() {
                 <SelectValue placeholder="All" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="Enabled">Enabled</SelectItem>
                 <SelectItem value="Disabled">Disabled</SelectItem>
               </SelectContent>
@@ -105,7 +106,7 @@ export default function ItemPage() {
             <Input
               placeholder="ID"
               className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.name} // Reusing name filter for ID simplicity
+              value={filters.name}
               onChange={(e) => handleFilterChange("name", e.target.value)}
             />
           </div>
@@ -144,7 +145,7 @@ export default function ItemPage() {
           </Table>
         </div>
         <div className="flex justify-between items-center mt-4 text-[var(--card-foreground)]">
-          <span>20 of 190</span>
+          <span>Showing {items.length} of {initialItems.length} items</span>
           <div className="space-x-2">
             <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Filters</Button>
           </div>
