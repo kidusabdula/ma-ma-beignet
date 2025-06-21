@@ -14,20 +14,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.className}>
-      <body className="m-0 p-0 bg-[#0f0f0f] overflow-hidden">
+      <body className="m-0 p-0 bg-[#0f0f0f] overflow-auto min-h-screen">
         <div
           className="origin-top-left"
           style={{
-            transform: "scale(0.90)",
-            width: "111.1111vw", // 100 / 0.9 = 111.1111
-            height: "111.1111vh", // Corrected from 251.1111vh
-            overflow: "hidden",
+            transform: "scale(0.9)",
+            width: "111.1111vw", // Compensates for 90% scale width
+            transformOrigin: "0 0",
           }}
         >
           <LayoutComponent>{children}</LayoutComponent>
-          <footer className="w-full text-white text-right text-sm py-2 bg-[#0f0f0f]">
-            Ma Ma Beignet © 2025 All rights reserved.
-          </footer>
         </div>
       </body>
     </html>

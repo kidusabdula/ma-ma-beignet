@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Link from "next/link";
 
 const mockBOMs = [
   {
@@ -113,9 +114,11 @@ export default function BOM() {
             <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">
               List View
             </Button>
+            <Link href="/manufacturing/add-bom">
             <Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]">
               + Add BOM
             </Button>
+            </Link>
           </div>
         </div>
 

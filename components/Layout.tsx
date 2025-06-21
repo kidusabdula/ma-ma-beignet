@@ -16,6 +16,10 @@ import {
   Receipt,
   BookOpen,
   UtensilsCrossed,
+  Package,
+  Box,
+  ClipboardCheck,
+  PackagePlus,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -23,9 +27,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isAccountingOpen, setIsAccountingOpen] = useState(false);
   const [isManufacturingOpen, setIsManufacturingOpen] = useState(false);
   const [isCRMOpen, setIsCRMOpen] = useState(false);
+  const [isStockOpen, setIsStockOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] dark">
+    <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)] dark">
       {/* Sidebar */}
       <aside className="w-64 flex flex-col border-r border-[var(--sidebar-border)] bg-[var(--sidebar)] text-[var(--sidebar-foreground)]">
         {/* Fixed header section */}
@@ -260,6 +265,56 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Pages
               </h3>
               <div className="space-y-1">
+                {/* Stock Dropdown */}
+                <div className="space-y-1">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                    onClick={() => setIsStockOpen(!isStockOpen)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Stock
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${
+                        isStockOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </Button>
+                  {isStockOpen && (
+                    <div className="pl-8 space-y-1">
+                      <Link href="/stock/items">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <Box className="h-4 w-4" />
+                          Items
+                        </Button>
+                      </Link>
+                      <Link href="/stock/material-request">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <ClipboardCheck className="h-4 w-4" />
+                          Material Request
+                        </Button>
+                      </Link>
+                      <Link href="/stock/stock-entry">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <PackagePlus className="h-4 w-4" />
+                          Stock Entry
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+                
                 <Link href="/assets">
                   <Button
                     variant="ghost"
