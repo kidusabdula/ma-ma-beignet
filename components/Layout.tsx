@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   Users,
-  FileText,
+  // FileText,
   Settings,
   AlertCircle,
   Lock,
@@ -119,13 +119,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
 
                 <Link href="/hr">
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
                   >
                     <Users className="h-4 w-4" />
                     Human Resource
-                  </Button>
+                  </Button> */}
                 </Link>
 
                 {/* CRM Dropdown */}
@@ -218,13 +218,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         </Button>
                       </Link>
                       <Link href="/manufacturing/production-plan">
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
                         >
                           <Receipt className="h-4 w-4" />
                           Production Plan
-                        </Button>
+                        </Button> */}
                       </Link>
                       <Link href="/manufacturing/bom-stock-report">
                         <Button
@@ -247,7 +247,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                   )}
                 </div>
-                <Link href="/order">
+                {/* <Link href="/order">
                   <Button
                     variant="ghost"
                     className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
@@ -255,7 +255,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <FileText className="h-4 w-4" />
                     Order Management
                   </Button>
-                </Link>
+                </Link> */}
               </div>
             </div>
 
@@ -324,7 +324,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     Asset Management
                   </Button>
                 </Link>
-                <Link href="/settings">
+                {/* <Link href="/settings">
                   <Button
                     variant="ghost"
                     className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
@@ -332,7 +332,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <Settings className="h-4 w-4" />
                     Settings
                   </Button>
-                </Link>
+                </Link> */}
               </div>
             </div>
 
