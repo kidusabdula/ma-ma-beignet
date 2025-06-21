@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -120,6 +122,22 @@ const mockJournalEntries = [
   },
 ];
 
+const downloadPDF = (entryId: string) => {
+  // Create a mock PDF blob (in a real app, you would fetch this from your API)
+  const blob = new Blob([""], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  
+  // Create a temporary anchor element to trigger the download
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `journal_entry_${entryId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  
+  // Clean up
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 
 export default function JournalEntry() {
   return (
@@ -140,7 +158,7 @@ export default function JournalEntry() {
               variant="default"
               className="bg-[var(--primary)] text-[var(--primary-foreground)]"
             >
-              + Add Jorunal Entry
+              + Add Journal Entry
             </Button>
           </Link>
         </div>
@@ -231,16 +249,17 @@ export default function JournalEntry() {
                 Total Debit
               </TableHead>
               <TableHead className="text-[var(--card-foreground)]">
-                ID
-              </TableHead>
-              <TableHead className="text-[var(--card-foreground)]">
                 Last Updated On
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {mockJournalEntries.map((entry, index) => (
-              <TableRow key={index}>
+              <TableRow 
+                key={index}
+                className="cursor-pointer hover:bg-[var(--sidebar-accent)]"
+                onClick={() => downloadPDF(entry.id)}
+              >
                 <TableCell className="text-[var(--card-foreground)]">
                   <input type="checkbox" className="mr-2" />
                   {entry.id}
@@ -251,11 +270,13 @@ export default function JournalEntry() {
                 <TableCell className="text-[var(--card-foreground)]">
                   <span
                     className={`px-2 py-1 rounded-full text-white ${
-                      entry.status === "Draft" || entry.status === "Cancelled"
-                        ? "bg-red-500"
+                      entry.status === "Draft"
+                        ? "bg-yellow-500"
+                        : entry.status === "Submitted"
+                        ? "bg-green-500"
                         : entry.status === "Journal Entry"
                         ? "bg-blue-500"
-                        : "bg-green-500"
+                        : "bg-gray-500"
                     }`}
                   >
                     {entry.status}
@@ -268,9 +289,6 @@ export default function JournalEntry() {
                   {entry.totalDebit}
                 </TableCell>
                 <TableCell className="text-[var(--card-foreground)]">
-                  {entry.id}
-                </TableCell>
-                <TableCell className="text-[var(--card-foreground)]">
                   {entry.lastUpdated}
                 </TableCell>
               </TableRow>
@@ -278,7 +296,9 @@ export default function JournalEntry() {
           </TableBody>
         </Table>
         <div className="mt-4 flex justify-between items-center">
-          <span className="text-[var(--card-foreground)]">20 of 29</span>
+          <span className="text-[var(--card-foreground)]">
+            Showing {mockJournalEntries.length} of {mockJournalEntries.length} entries
+          </span>
           <div className="space-x-2">
             <Button
               variant="outline"
