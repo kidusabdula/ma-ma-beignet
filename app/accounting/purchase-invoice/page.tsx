@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,6 +58,22 @@ const mockPurchaseInvoices = [
   },
 ];
 
+const downloadPDF = (invoiceId: string) => {
+  // Create a mock PDF blob (in a real app, you would fetch this from your API)
+  const blob = new Blob([""], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  
+  // Create a temporary anchor element to trigger the download
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `purchase_invoice_${invoiceId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  
+  // Clean up
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 
 export default function PurchaseInvoice() {
   return (
@@ -166,7 +184,11 @@ export default function PurchaseInvoice() {
           </TableHeader>
           <TableBody>
             {mockPurchaseInvoices.map((invoice, index) => (
-              <TableRow key={index}>
+              <TableRow 
+                key={index}
+                className="cursor-pointer hover:bg-[var(--sidebar-accent)]"
+                onClick={() => downloadPDF(invoice.id)}
+              >
                 <TableCell className="text-[var(--card-foreground)]">
                   {invoice.title}
                 </TableCell>
@@ -175,9 +197,13 @@ export default function PurchaseInvoice() {
                     className={`px-2 py-1 rounded-full text-white ${
                       invoice.status === "Overdue"
                         ? "bg-red-500"
-                        : invoice.status === "Partially Paid"
+                        : invoice.status === "Paid"
+                        ? "bg-green-500"
+                        : invoice.status === "Unpaid"
                         ? "bg-yellow-500"
-                        : "bg-green-500"
+                        : invoice.status === "Partially Paid"
+                        ? "bg-blue-500"
+                        : "bg-gray-500"
                     }`}
                   >
                     {invoice.status}
