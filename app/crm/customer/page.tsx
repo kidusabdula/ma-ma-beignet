@@ -12,19 +12,91 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import Link from "next/link";
 
 const initialCustomers = [
-  { id: "BEIGNET-001", name: "Sweet Cravings Café", status: "Enabled", group: "Café", territory: "Downtown", lastUpdated: "3d" },
-  { id: "BEIGNET-002", name: "Morning Dough Bakery", status: "Enabled", group: "Bakery", territory: "Uptown", lastUpdated: "3d" },
-  { id: "BEIGNET-003", name: "Pastry Haven", status: "Enabled", group: "Pastry Shop", territory: "Midtown", lastUpdated: "3d" },
-  { id: "BEIGNET-004", name: "Flour Power Kitchen", status: "Enabled", group: "Bakery", territory: "Eastside", lastupdated: "3d" },
-  { id: "BEIGNET-005", name: "Sugar Rush Deli", status: "Enabled", group: "Deli", territory: "Westside", lastUpdated: "3d" },
-  { id: "BEIGNET-006", name: "Bánh Mì Joy", status: "Enabled", group: "Ethnic Bakery", territory: "Southside", lastUpdated: "1w" },
-  { id: "BEIGNET-007", name: "Crusty Corner", status: "Enabled", group: "Bakery", territory: "Northside", lastUpdated: "1w" },
-  { id: "BEIGNET-008", name: "Dough Delight", status: "Enabled", group: "Café", territory: "Downtown", lastUpdated: "1w" },
-  { id: "BEIGNET-009", name: "Frosted Bliss", status: "Enabled", group: "Pastry Shop", territory: "Midtown", lastUpdated: "1m" },
-  { id: "BEIGNET-010", name: "Bread Basket Co.", status: "Enabled", group: "Bakery", territory: "Eastside", lastUpdated: "1m" },
+  {
+    id: "BEIGNET-001",
+    name: "Addis Cravings Café",
+    status: "Enabled",
+    group: "Café",
+    territory: "Piassa",
+    lastUpdated: "3d",
+  },
+  {
+    id: "BEIGNET-002",
+    name: "Morning Injera Bakery",
+    status: "Enabled",
+    group: "Bakery",
+    territory: "Bole",
+    lastUpdated: "3d",
+  },
+  {
+    id: "BEIGNET-003",
+    name: "Pastry Haven Ethiopia",
+    status: "Enabled",
+    group: "Pastry Shop",
+    territory: "Kazanchis",
+    lastUpdated: "3d",
+  },
+  {
+    id: "BEIGNET-004",
+    name: "Flour & Spice Kitchen",
+    status: "Enabled",
+    group: "Bakery",
+    territory: "Gullele",
+    lastUpdated: "3d",
+  },
+  {
+    id: "BEIGNET-005",
+    name: "Sweet Rush Deli",
+    status: "Enabled",
+    group: "Deli",
+    territory: "Megenagna",
+    lastUpdated: "3d",
+  },
+  {
+    id: "BEIGNET-006",
+    name: "Gondar Traditional Bakery",
+    status: "Enabled",
+    group: "Ethnic Bakery",
+    territory: "Gondar",
+    lastUpdated: "1w",
+  },
+  {
+    id: "BEIGNET-007",
+    name: "Crusty Corner Injera",
+    status: "Enabled",
+    group: "Bakery",
+    territory: "Addis Ketema",
+    lastUpdated: "1w",
+  },
+  {
+    id: "BEIGNET-008",
+    name: "Dough & Mocha Café",
+    status: "Enabled",
+    group: "Café",
+    territory: "CMC",
+    lastUpdated: "1w",
+  },
+  {
+    id: "BEIGNET-009",
+    name: "Frosted Joy Addis",
+    status: "Enabled",
+    group: "Pastry Shop",
+    territory: "Arat Kilo",
+    lastUpdated: "1m",
+  },
+  {
+    id: "BEIGNET-010",
+    name: "Bread Basket Alem Gena",
+    status: "Enabled",
+    group: "Bakery",
+    territory: "Alem Gena",
+    lastUpdated: "1m",
+  },
 ];
+
 
 export default function CustomerPage() {
   const [customers, setCustomers] = useState(initialCustomers);
@@ -57,7 +129,7 @@ export default function CustomerPage() {
         <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Customers</h1>
         <div className="space-x-2">
           <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">List View</Button>
-          <Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]" onClick={addCustomer}>Add Customer</Button>
+          <Link href="crm/add-customer"><Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]" onClick={addCustomer}>Add Customer</Button></Link>
         </div>
       </div>
 

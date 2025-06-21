@@ -22,7 +22,7 @@ const mockInvoices = [
   {
     title: "Nguyễn Văn A",
     status: "Overdue",
-    grandTotal: "$2,000.00",
+    grandTotal: "ETB 2,000.00",
     id: "ACC-SINV-2025-001",
     lastUpdated: "2m",
     customer: "Bakery Customer 1",
@@ -31,7 +31,7 @@ const mockInvoices = [
   {
     title: "Alemu Tesfaye",
     status: "Paid",
-    grandTotal: "$1,250.00",
+    grandTotal: "ETB 1,250.00",
     id: "ACC-SINV-2025-002",
     lastUpdated: "5h",
     customer: "Injera Wholesale Ltd.",
@@ -40,7 +40,7 @@ const mockInvoices = [
   {
     title: "Sara Johnson",
     status: "Unpaid",
-    grandTotal: "$3,740.00",
+    grandTotal: "ETB 3,740.00",
     id: "ACC-SINV-2025-003",
     lastUpdated: "1d",
     customer: "Fresh Bakes Inc.",
@@ -49,7 +49,7 @@ const mockInvoices = [
   {
     title: "Mohammed Abdullahi",
     status: "Partially Paid",
-    grandTotal: "$850.00",
+    grandTotal: "ETB 850.00",
     id: "ACC-SINV-2025-004",
     lastUpdated: "3d",
     customer: "Cafe Addis",
@@ -58,7 +58,7 @@ const mockInvoices = [
   {
     title: "Jane Doe",
     status: "Draft",
-    grandTotal: "$4,520.00",
+    grandTotal: "ETB 4,520.00",
     id: "ACC-SINV-2025-005",
     lastUpdated: "7h",
     customer: "Golden Pastry Ltd.",
@@ -67,7 +67,7 @@ const mockInvoices = [
   {
     title: "Carlos Rivera",
     status: "Cancelled",
-    grandTotal: "$1,100.00",
+    grandTotal: "ETB 1,100.00",
     id: "ACC-SINV-2025-006",
     lastUpdated: "2w",
     customer: "Rivera Coffee",
@@ -76,7 +76,7 @@ const mockInvoices = [
   {
     title: "Fatima Al-Mansour",
     status: "Overdue",
-    grandTotal: "$2,980.00",
+    grandTotal: "ETB 2,980.00",
     id: "ACC-SINV-2025-007",
     lastUpdated: "4d",
     customer: "Middle East Markets",
@@ -85,13 +85,14 @@ const mockInvoices = [
   {
     title: "John Smith",
     status: "Paid",
-    grandTotal: "$620.00",
+    grandTotal: "ETB 620.00",
     id: "ACC-SINV-2025-008",
     lastUpdated: "15m",
     customer: "Everyday Bakes",
     company: "Ma Ma Beignet",
   },
 ];
+
 
 export default function SalesInvoice() {
   return (

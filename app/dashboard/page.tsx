@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
 import {
   LineChart,
   Line,
@@ -22,43 +21,43 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 const mockData = {
-  accounting: { totalTransactions: "$1,250.00", trend: "up", period: "This Month" },
-  hr: { employees: 45, leaves: 12, activeClaims: 5 },
-  crm: { leads: 30, opportunities: 15, openCalls: 10 },
-  manufacturing: { production: 100, downtime: 5, capacity: "80%" },
-  order: { orders: 50, fulfilled: 45, pending: 5 },
-  assets: { totalAssets: 20, depreciation: "$500", active: 18 },
+  accounting: { totalTransactions: "ETB 75,000.00", trend: "up", period: "This Month" },
+  hr: { employees: 15, leaves: 3, activeClaims: 2 },
+  crm: { leads: 20, opportunities: 10, openCalls: 5 },
+  manufacturing: { production: 500, downtime: 2, capacity: "85%" },
+  order: { orders: 30, fulfilled: 28, pending: 2 },
+  assets: { totalAssets: 10, depreciation: "ETB 3,000", active: 9 },
 };
 
 const monthlyData = [
-  { name: "Jan", value: 4000 },
-  { name: "Feb", value: 3000 },
-  { name: "Mar", value: 5000 },
-  { name: "Apr", value: 2780 },
-  { name: "May", value: 1890 },
-  { name: "Jun", value: 2390 },
+  { name: "Jan", value: 24000 },
+  { name: "Feb", value: 18000 },
+  { name: "Mar", value: 30000 },
+  { name: "Apr", value: 16700 },
+  { name: "May", value: 11300 },
+  { name: "Jun", value: 14300 },
 ];
 
 const smallChartData = [
-  { name: "Week 1", value: 100 },
-  { name: "Week 2", value: 300 },
-  { name: "Week 3", value: 200 },
-  { name: "Week 4", value: 500 },
+  { name: "Week 1", value: 600 },
+  { name: "Week 2", value: 1800 },
+  { name: "Week 3", value: 1200 },
+  { name: "Week 4", value: 3000 },
 ];
 
 const invoicesData = [
-  { id: 1, status: "Success", email: "ker99@yahoo.com", amount: "$318.00" },
-  { id: 2, status: "Success", email: "abe45@gmail.com", amount: "$242.00" },
-  { id: 3, status: "Processing", email: "monserrat44@gmail.com", amount: "$837.00" },
-  { id: 4, status: "Failed", email: "carmella@hotmail.com", amount: "$721.00" },
+  { id: 1, status: "Success", email: "amanuel23@ethmail.com", amount: "ETB 1,900.00" },
+  { id: 2, status: "Success", email: "selam45@ethmail.com", amount: "ETB 1,450.00" },
+  { id: 3, status: "Processing", email: "yohannes77@ethmail.com", amount: "ETB 5,022.00" },
+  { id: 4, status: "Failed", email: "tsegaye88@ethmail.com", amount: "ETB 4,326.00" },
 ];
 
 const employeesData = [
-  { id: 1, name: "Dale Komen", email: "dalie@example.com", role: "Member" },
-  { id: 2, name: "Sofia Davis", email: "m@example.com", role: "Owner" },
-  { id: 3, name: "Jackson Lee", email: "p@example.com", role: "Member" },
-  { id: 4, name: "Isabella Nguyen", email: "l@example.com", role: "Member" },
-  { id: 5, name: "Hugan Romex", email: "kai@example.com", role: "Member" },
+  { id: 1, name: "Amanuel Tadesse", email: "amanuel@mamabeignet.com", role: "Manager" },
+  { id: 2, name: "Selam Getachew", email: "selam@mamabeignet.com", role: "Owner" },
+  { id: 3, name: "Yohannes Kebede", email: "yohannes@mamabeignet.com", role: "Baker" },
+  { id: 4, name: "Tsegaye Abebe", email: "tsegaye@mamabeignet.com", role: "Assistant" },
+  { id: 5, name: "Elias Worku", email: "elias@mamabeignet.com", role: "Baker" },
 ];
 
 export default function Dashboard() {
@@ -76,13 +75,7 @@ export default function Dashboard() {
     <div className="space-y-6 p-4 md:p-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex space-x-2">
-          {/* <Button variant="ghost" className="rounded-md">Overview</Button>
-          <Button variant="ghost" className="rounded-md">Analytics</Button>
-          <Button variant="ghost" className="rounded-md">Reports</Button>
-          <Button variant="ghost" className="rounded-md">Notifications</Button> */}
-        </div>
+        <h1 className="text-2xl font-bold text-[var(--card-foreground)]">Dashboard</h1>
       </div>
 
       {/* Top Metrics Row */}

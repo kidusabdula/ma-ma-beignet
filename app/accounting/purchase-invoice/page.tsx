@@ -21,7 +21,7 @@ const mockPurchaseInvoices = [
   {
     title: "ABC Importers",
     status: "Paid",
-    grandTotal: "$3,200.00",
+    grandTotal: "ETB 3,200.00",
     id: "ACC-PINV-2025-001",
     lastUpdated: "1h",
     supplier: "ABC Importers Ltd.",
@@ -30,7 +30,7 @@ const mockPurchaseInvoices = [
   {
     title: "Tesfaye Supplies",
     status: "Unpaid",
-    grandTotal: "$980.00",
+    grandTotal: "ETB 980.00",
     id: "ACC-PINV-2025-002",
     lastUpdated: "3d",
     supplier: "Tesfaye General Trading",
@@ -39,7 +39,7 @@ const mockPurchaseInvoices = [
   {
     title: "Addis Traders",
     status: "Partially Paid",
-    grandTotal: "$1,750.00",
+    grandTotal: "ETB 1,750.00",
     id: "ACC-PINV-2025-003",
     lastUpdated: "5d",
     supplier: "Addis Traders",
@@ -48,13 +48,14 @@ const mockPurchaseInvoices = [
   {
     title: "Global Exports",
     status: "Overdue",
-    grandTotal: "$2,450.00",
+    grandTotal: "ETB 2,450.00",
     id: "ACC-PINV-2025-004",
     lastUpdated: "1w",
     supplier: "Global Exports Inc.",
     company: "Ma Ma Beignet",
   },
 ];
+
 
 export default function PurchaseInvoice() {
   return (

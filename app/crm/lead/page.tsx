@@ -14,9 +14,80 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 
 const initialLeads = [
-  { id: "CRM-LEAD-2-...", title: "Missá Nguyễn", status: "Open", jobTitle: "", organization: "", territory: "", lastUpdated: "1w" },
-  { id: "CRM-LEAD-2-...", title: "Missá 123", status: "Open", jobTitle: "123", organization: "", territory: "", lastUpdated: "1w" },
+  {
+    id: "CRM-LEAD-2025-001",
+    title: "Kidist Mekonnen",
+    status: "Open",
+    jobTitle: "Procurement Officer",
+    organization: "Lalibela Bread Factory",
+    territory: "Addis Ababa",
+    lastUpdated: "2d",
+  },
+  {
+    id: "CRM-LEAD-2025-002",
+    title: "Abel Girma",
+    status: "Open",
+    jobTitle: "Operations Manager",
+    organization: "Sholla Pastries",
+    territory: "Bole",
+    lastUpdated: "1w",
+  },
+  {
+    id: "CRM-LEAD-2025-003",
+    title: "Selam Tadesse",
+    status: "Contacted",
+    jobTitle: "Cafe Manager",
+    organization: "Savor Café",
+    territory: "Kazanchis",
+    lastUpdated: "3d",
+  },
+  {
+    id: "CRM-LEAD-2025-004",
+    title: "Mulugeta Bekele",
+    status: "Open",
+    jobTitle: "Store Owner",
+    organization: "Bahir Dar Mini Mart",
+    territory: "Bahir Dar",
+    lastUpdated: "5d",
+  },
+  {
+    id: "CRM-LEAD-2025-005",
+    title: "Rahel Yilma",
+    status: "Qualified",
+    jobTitle: "Head of Supply",
+    organization: "Tena Bakery",
+    territory: "Gullele",
+    lastUpdated: "1d",
+  },
+  {
+    id: "CRM-LEAD-2025-006",
+    title: "Tesfaye Ayalew",
+    status: "Open",
+    jobTitle: "Wholesale Buyer",
+    organization: "Addis Baking Supply",
+    territory: "Kality",
+    lastUpdated: "4h",
+  },
+  {
+    id: "CRM-LEAD-2025-007",
+    title: "Liya Habte",
+    status: "Open",
+    jobTitle: "Receptionist",
+    organization: "Wheat & Honey Café",
+    territory: "Summit",
+    lastUpdated: "3d",
+  },
+  {
+    id: "CRM-LEAD-2025-008",
+    title: "Yonas Alemu",
+    status: "Lost",
+    jobTitle: "General Manager",
+    organization: "Dessie Bread House",
+    territory: "Dessie",
+    lastUpdated: "1w",
+  },
 ];
+
 
 export default function LeadPage() {
   const [leads, setLeads] = useState(initialLeads);
