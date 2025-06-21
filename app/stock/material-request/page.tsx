@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import Link from "next/link";
 
 const initialRequests = [
   { id: "REQ-001", item: "Flour (50kg)", requestedBy: "John Doe", status: "Pending", lastUpdated: "2d" },
@@ -53,7 +54,7 @@ export default function MaterialRequestPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Material Requests</h1>
         <div className="space-x-2">
-          <Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]">New Request</Button>
+          <Link href="/stock/add-material-request"><Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]">New Request</Button></Link>
         </div>
       </div>
 
