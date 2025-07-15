@@ -13,6 +13,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import Link from "next/link";
+// import Router from "next/router";
 
 const initialCustomers = [
   {
@@ -120,7 +121,6 @@ export default function CustomerPage() {
 
   const addCustomer = () => {
     // Logic to navigate to add customer form (to be implemented)
-    console.log("Navigate to add customer form");
   };
 
   return (
@@ -129,7 +129,7 @@ export default function CustomerPage() {
         <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Customers</h1>
         <div className="space-x-2">
           <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">List View</Button>
-          <Link href="crm/add-customer"><Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]" onClick={addCustomer}>Add Customer</Button></Link>
+          <Link href="add-customer"><Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]" onClick={addCustomer}>Add Customer</Button></Link>
         </div>
       </div>
 

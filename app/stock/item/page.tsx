@@ -12,6 +12,22 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+// Image URLs for each item (using Unsplash and other public sources)
+const itemImages = {
+  "Beignet Mix": "https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Croissant Dough": "https://images.unsplash.com/photo-1589010588553-46e7c21788?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Sugar Glaze": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Chocolate Filling": "https://images.unsplash.com/photo-1575377427642-087cf684f29d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Almond Paste": "https://images.unsplash.com/photo-1575377427642-087cf684f29d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Baguette Flour": "https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Pastry Cream": "https://images.unsplash.com/photo-1562440499-64c9a111f713?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Brioche Dough": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Fruit Jam": "https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+  "Sourdough Starter": "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+};
 
 const initialItems = [
   { name: "Beignet Mix", status: "Enabled", group: "Flour Products", id: "BAKE-001", lastUpdated: "3d" },
@@ -32,8 +48,9 @@ export default function ItemPage() {
     name: "",
     group: "",
     variantOf: "",
-    status: "all", // Changed from empty string to "all"
+    status: "all",
   });
+  const router = useRouter();
 
   const handleFilterChange = (field: string, value: string) => {
     const newFilters = { ...filters, [field]: value };
@@ -53,6 +70,13 @@ export default function ItemPage() {
         <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Items</h1>
         <div className="space-x-2">
           <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">List View</Button>
+          <Button
+            variant="default"
+            className="bg-[var(--primary)] text-[var(--primary-foreground)]"
+            onClick={() => router.push("add-item")}
+          >
+            Add Item
+          </Button>
         </div>
       </div>
 
@@ -119,7 +143,7 @@ export default function ItemPage() {
                 <TableHead className="text-[var(--card-foreground)] w-4">
                   <input type="checkbox" className="mr-2" />
                 </TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Item Name</TableHead>
+                <TableHead className="text-[var(--card-foreground)]">Item</TableHead>
                 <TableHead className="text-[var(--card-foreground)]">Status</TableHead>
                 <TableHead className="text-[var(--card-foreground)]">Item Group</TableHead>
                 <TableHead className="text-[var(--card-foreground)]">ID</TableHead>
@@ -132,7 +156,22 @@ export default function ItemPage() {
                   <TableCell className="text-[var(--card-foreground)]">
                     <input type="checkbox" className="mr-2" />
                   </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{item.name}</TableCell>
+                  <TableCell className="text-[var(--card-foreground)]">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10 mr-3">
+                        <Image
+                          className="rounded-full object-cover"
+                          src={itemImages[item.name as keyof typeof itemImages]}
+                          alt={item.name}
+                          width={40}
+                          height={40}
+                        />
+                      </div>
+                      <div>
+                        <div className="font-medium">{item.name}</div>
+                      </div>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-[var(--card-foreground)]">
                     <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs">{item.status}</span>
                   </TableCell>

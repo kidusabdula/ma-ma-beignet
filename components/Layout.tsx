@@ -20,6 +20,7 @@ import {
   Box,
   ClipboardCheck,
   PackagePlus,
+  ShoppingCart, // Added for Sales icon
 } from "lucide-react";
 import { useState } from "react";
 
@@ -68,6 +69,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Tasks
               </h3>
               <div className="space-y-1">
+                {/* Sales Link */}
+                <Link href="/pos">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    Sales
+                  </Button>
+                </Link>
+
                 {/* Accounting Dropdown */}
                 <div className="space-y-1">
                   <Button

@@ -1,0 +1,295 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  Search,
+  Trash2,
+  Minus,
+  Plus,
+  Donut,
+  Croissant,
+  CakeSlice,
+  Coffee,
+  ArrowLeft,
+  Utensils
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+type OrderItem = MenuItem & {
+  quantity: number;
+};
+
+type MenuCategory = {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  color: string;
+  itemCount: number;
+};
+
+const menuData = {
+  categories: [
+    { id: "breakfast", name: "Breakfast", icon: Donut, color: "bg-green-300/10 text-green-300", itemCount: 13 },
+    { id: "soups", name: "Soups", icon: Croissant, color: "bg-purple-300/10 text-purple-300", itemCount: 8 },
+    { id: "pasta", name: "Pasta", icon: CakeSlice, color: "bg-pink-300/10 text-pink-300", itemCount: 10 },
+    { id: "sushi", name: "Sushi", icon: Coffee, color: "bg-blue-300/10 text-blue-300", itemCount: 15 },
+    { id: "main", name: "Main Course", icon: Utensils, color: "bg-orange-300/10 text-orange-300", itemCount: 7 },
+    { id: "desserts", name: "Desserts", icon: Donut, color: "bg-yellow-300/10 text-yellow-300", itemCount: 9 },
+    { id: "drinks", name: "Drinks", icon: Coffee, color: "bg-teal-300/10 text-teal-300", itemCount: 11 },
+    { id: "alcohol", name: "Alcohol", icon: Coffee, color: "bg-red-300/10 text-red-300", itemCount: 12 },
+  ] as MenuCategory[],
+  items: {
+    breakfast: [
+      { id: "b1", name: "Pancakes", price: 8.50 },
+      { id: "b2", name: "Omelette", price: 7.00 },
+      { id: "b3", name: "French Toast", price: 9.25 },
+    ],
+    soups: [
+      { id: "s1", name: "Tomato Soup", price: 6.50 },
+      { id: "s2", name: "Chicken Noodle", price: 7.00 },
+    ],
+    pasta: [
+      { id: "p1", name: "Spaghetti Carbonara", price: 12.50 },
+      { id: "p2", name: "Fettuccine Alfredo", price: 13.00 },
+    ],
+    sushi: [
+      { id: "su1", name: "California Roll", price: 8.50 },
+      { id: "su2", name: "Salmon Nigiri", price: 9.00 },
+    ],
+    main: [
+      { id: "m1", name: "Fish and Chips", price: 7.50 },
+      { id: "m2", name: "Roast Chicken", price: 12.75 },
+      { id: "m3", name: "Roast Beef", price: 15.00 },
+      { id: "m4", name: "Lobster", price: 25.00 },
+      { id: "m5", name: "Bedsteads", price: 10.20 },
+      { id: "m6", name: "Red Caviar", price: 12.30 },
+      { id: "m7", name: "German Sausage", price: 5.60 },
+    ],
+    desserts: [
+      { id: "d1", name: "Chocolate Cake", price: 7.00 },
+      { id: "d2", name: "Cheesecake", price: 8.00 },
+    ],
+    drinks: [
+      { id: "dr1", name: "Irish Cream Coffee", price: 4.20 },
+      { id: "dr2", name: "Iced Tea", price: 3.50 },
+    ],
+    alcohol: [
+      { id: "a1", name: "Red Wine", price: 8.00 },
+      { id: "a2", name: "White Wine", price: 7.50 },
+    ],
+  } as Record<string, MenuItem[]>,
+};
+
+export default function PosPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
+
+  const handleAddItem = (itemToAdd: MenuItem) => {
+    setOrderItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === itemToAdd.id);
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === itemToAdd.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevItems, { ...itemToAdd, quantity: 1 }];
+    });
+  };
+
+  const handleUpdateQuantity = (itemId: string, delta: number) => {
+    setOrderItems((prevItems) => {
+      const itemToUpdate = prevItems.find((item) => item.id === itemId);
+      if (itemToUpdate && itemToUpdate.quantity + delta === 0) {
+        return prevItems.filter((item) => item.id !== itemId);
+      }
+      return prevItems.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+          : item
+      );
+    });
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setOrderItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+  };
+  
+  const { subtotal, tax, total } = useMemo(() => {
+    const sub = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const taxRate = 0.10;
+    const taxAmount = sub * taxRate;
+    const totalAmount = sub + taxAmount;
+    return { subtotal: sub, tax: taxAmount, total: totalAmount };
+  }, [orderItems]);
+
+  const MenuHeader = () => (
+    <div className="flex justify-between items-center mb-6">
+      <div className="relative w-full">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--card-foreground)]" size={20} />
+        <Input placeholder="Search for items..." className="bg-[var(--input)] border-[var(--border)] rounded-lg pl-12 h-12 text-[var(--card-foreground)] placeholder:text-[var(--muted-foreground)] focus:ring-1 focus:ring-offset-0 focus:ring-[var(--primary)] focus:border-[var(--primary)]" />
+      </div>
+    </div>
+  );
+
+  const CategoryView = () => (
+    <>
+      <h2 className="text-2xl font-semibold mb-4 text-[var(--card-foreground)]">Categories</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {menuData.categories.map((cat) => (
+          <div 
+            key={cat.id} 
+            onClick={() => setSelectedCategory(cat.id)} 
+            className={`p-6 rounded-lg cursor-pointer transition-all duration-200 ease-in-out hover:shadow-lg hover:shadow-black/20 hover:scale-105 ${cat.color}`}
+          >
+            <cat.icon className="w-8 h-8 mb-3" />
+            <h3 className="font-semibold text-[var(--card-foreground)]">{cat.name}</h3>
+            <p className="text-sm opacity-70">{cat.itemCount} items</p>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
+  const ItemView = () => {
+    if (!selectedCategory) return null;
+    const categoryDetails = menuData.categories.find(c => c.id === selectedCategory);
+    const items = menuData.items[selectedCategory];
+
+    return (
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-4 text-[var(--card-foreground)]">{categoryDetails?.name}</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {items.map((item) => (
+            <div 
+              key={item.id} 
+              onClick={() => handleAddItem(item)} 
+              className="bg-[var(--card)] p-3 rounded-lg text-center cursor-pointer transition-transform hover:scale-105 group border border-[var(--border)]"
+            >
+              <div className="w-full h-20 bg-[var(--input)] rounded-md flex items-center justify-center mb-2 group-hover:bg-[var(--primary)]/10">
+                <Utensils className="w-10 h-10 text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors" />
+              </div>
+              <h4 className="font-medium text-[var(--card-foreground)]">{item.name}</h4>
+              <p className="text-[var(--muted-foreground)]">${item.price.toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-hidden flex">
+        {/* Left & Center Panel (Menu) */}
+        <div className="flex-1 overflow-y-auto bg-[var(--card)] p-6">
+          <MenuHeader />
+          <CategoryView />
+          {selectedCategory && <ItemView />}
+        </div>
+
+        {/* Right Panel (Order) */}
+        <div className="w-96 flex flex-col bg-[var(--card)] border-l border-[var(--border)] h-full overflow-hidden">
+          <div className="p-6 h-full flex flex-col">
+            <h2 className="text-2xl font-semibold mb-4 text-[var(--card-foreground)]">Order</h2>
+            
+            {orderItems.length === 0 ? (
+              <div className="flex-grow flex flex-col items-center justify-center text-[var(--muted-foreground)]">
+                <Utensils size={48} />
+                <p className="mt-4 text-lg">No Items Added</p>
+                <p className="text-sm text-center">Click on items from the menu to add them to the order.</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex-grow overflow-y-auto pr-2 -mr-4 space-y-4">
+                  {orderItems.map((item) => (
+                    <div key={item.id} className="flex items-center">
+                      <div className="flex-grow">
+                        <p className="font-medium text-[var(--card-foreground)]">{item.name}</p>
+                        <p className="text-sm text-[var(--muted-foreground)]">${item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center bg-[var(--input)] rounded-lg">
+                        <Button 
+                          onClick={() => handleUpdateQuantity(item.id, -1)} 
+                          size="icon" 
+                          className="bg-transparent hover:bg-[var(--sidebar-accent)] h-8 w-8"
+                        >
+                          <Minus size={16} />
+                        </Button>
+                        <span className="px-3 w-10 text-center font-semibold text-[var(--card-foreground)]">{item.quantity}</span>
+                        <Button 
+                          onClick={() => handleUpdateQuantity(item.id, 1)} 
+                          size="icon" 
+                          className="bg-transparent hover:bg-[var(--sidebar-accent)] h-8 w-8"
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      <span className="w-20 text-right font-semibold text-[var(--card-foreground)]">
+                        ${(item.quantity * item.price).toFixed(2)}
+                      </span>
+                      <Button 
+                        onClick={() => handleRemoveItem(item.id)} 
+                        size="icon" 
+                        variant="ghost" 
+                        className="text-red-500 hover:text-red-400 hover:bg-red-500/10 ml-2 h-10 w-10"
+                      >
+                        <Trash2 size={20} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-[var(--border)] pt-4 mt-auto">
+                  <div className="space-y-2 text-[var(--muted-foreground)] mb-4">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax (10%)</span>
+                      <span>${tax.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between font-bold text-[var(--card-foreground)] text-xl mb-4">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <h4 className="font-semibold mb-2 text-[var(--card-foreground)]">Payment Method</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["Cash", "Debit Card", "E-Wallet"].map(method => (
+                        <Button 
+                          key={method} 
+                          onClick={() => setPaymentMethod(method)} 
+                          variant={paymentMethod === method ? "default" : "outline"} 
+                          className={`h-12 text-sm ${paymentMethod === method ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]' : 'bg-transparent text-[var(--card-foreground)] border-[var(--border)] hover:bg-[var(--sidebar-accent)] hover:text-[var(--card-foreground)]'}`}
+                        >
+                          {method}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button className="w-full bg-[var(--primary)] hover:bg-opacity-80 text-[var(--primary-foreground)] font-bold py-3 h-14 text-lg rounded-lg">
+                    Place Order
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

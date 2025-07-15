@@ -13,10 +13,11 @@ type ErrorResponse = {
   statusCode?: number;
 };
 
+// Placeholder for dashboard data (aggregates multiple DocTypes)
 export async function GET() {
   try {
     const response = await axios.get<ApiResponse>(
-      `${process.env.ERP_API_URL}/api/method/frappe.auth.get_logged_user`,
+      `${process.env.ERP_API_URL}/api/method/frappe.desk.dashboard.get`,
       {
         headers: {
           Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
@@ -25,7 +26,7 @@ export async function GET() {
     );
 
     if (!response.data) {
-      throw new Error("No data received from API");
+      throw new Error("No dashboard data received from API");
     }
 
     return NextResponse.json(response.data);
@@ -52,4 +53,15 @@ export async function GET() {
       status: errorResponse.statusCode || 500,
     });
   }
+}
+
+// Other CRUD operations not applicable for dashboard; use specific DocTypes instead
+export async function POST() {
+  return NextResponse.json({ error: "POST not supported for dashboard" }, { status: 405 });
+}
+export async function PUT() {
+  return NextResponse.json({ error: "PUT not supported for dashboard" }, { status: 405 });
+}
+export async function DELETE() {
+  return NextResponse.json({ error: "DELETE not supported for dashboard" }, { status: 405 });
 }
