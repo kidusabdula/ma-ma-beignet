@@ -9,7 +9,8 @@ import {
   Donut,
   Croissant,
   CakeSlice,
-  Coffee,
+  Cake,
+  Wheat,
   Utensils
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,53 +36,51 @@ type MenuCategory = {
 
 const menuData = {
   categories: [
-    { id: "breakfast", name: "Breakfast", icon: Donut, color: "bg-green-300/10 text-green-300", itemCount: 13 },
-    { id: "soups", name: "Soups", icon: Croissant, color: "bg-purple-300/10 text-purple-300", itemCount: 8 },
-    { id: "pasta", name: "Pasta", icon: CakeSlice, color: "bg-pink-300/10 text-pink-300", itemCount: 10 },
-    { id: "sushi", name: "Sushi", icon: Coffee, color: "bg-blue-300/10 text-blue-300", itemCount: 15 },
-    { id: "main", name: "Main Course", icon: Utensils, color: "bg-orange-300/10 text-orange-300", itemCount: 7 },
-    { id: "desserts", name: "Desserts", icon: Donut, color: "bg-yellow-300/10 text-yellow-300", itemCount: 9 },
-    { id: "drinks", name: "Drinks", icon: Coffee, color: "bg-teal-300/10 text-teal-300", itemCount: 11 },
-    { id: "alcohol", name: "Alcohol", icon: Coffee, color: "bg-red-300/10 text-red-300", itemCount: 12 },
+    { id: "breads", name: "Breads", icon: Cake , color: "bg-green-300/10 text-green-300", itemCount: 15 },
+    { id: "pastries", name: "Pastries", icon: Croissant, color: "bg-purple-300/10 text-purple-300", itemCount: 12 },
+    { id: "cakes", name: "Cakes", icon: CakeSlice, color: "bg-pink-300/10 text-pink-300", itemCount: 8 },
+    { id: "donuts", name: "Donuts", icon: Donut, color: "bg-blue-300/10 text-blue-300", itemCount: 10 },
+    { id: "flours", name: "Flours", icon: Wheat, color: "bg-orange-300/10 text-orange-300", itemCount: 5 },
+    { id: "ingredients", name: "Ingredients", icon: Utensils, color: "bg-yellow-300/10 text-yellow-300", itemCount: 20 },
   ] as MenuCategory[],
   items: {
-    breakfast: [
-      { id: "b1", name: "Pancakes", price: 8.50 },
-      { id: "b2", name: "Omelette", price: 7.00 },
-      { id: "b3", name: "French Toast", price: 9.25 },
+    breads: [
+      { id: "b1", name: "Sourdough Loaf", price: 555.50 },
+      { id: "b2", name: "Baguette", price: 370.75 },
+      { id: "b3", name: "Whole Wheat Bread", price: 435.25 },
+      { id: "b4", name: "Rye Bread", price: 555.00 },
+      { id: "b5", name: "Brioche", price: 600.50 },
     ],
-    soups: [
-      { id: "s1", name: "Tomato Soup", price: 6.50 },
-      { id: "s2", name: "Chicken Noodle", price: 7.00 },
+    pastries: [
+      { id: "p1", name: "Croissant (Pack of 6)", price: 899.50 },
+      { id: "p2", name: "Danish Pastry (Pack of 6)", price: 569.00 },
+      { id: "p3", name: "Puff Pastry Sheet", price: 476.75 },
+      { id: "p4", name: "Palmier Cookies", price: 985.25 },
     ],
-    pasta: [
-      { id: "p1", name: "Spaghetti Carbonara", price: 12.50 },
-      { id: "p2", name: "Fettuccine Alfredo", price: 13.00 },
+    cakes: [
+      { id: "c1", name: "Chocolate Cake (Whole)", price: 258.00 },
+      { id: "c2", name: "Vanilla Cake (Whole)", price: 229.00 },
+      { id: "c3", name: "Red Velvet Cake (Whole)", price: 287.00 },
+      { id: "c4", name: "Cheesecake (Whole)", price: 307.00 },
     ],
-    sushi: [
-      { id: "su1", name: "California Roll", price: 8.50 },
-      { id: "su2", name: "Salmon Nigiri", price: 9.00 },
+    donuts: [
+      { id: "d1", name: "Glazed Donut (Dozen)", price: 127.00 },
+      { id: "d2", name: "Chocolate Donut (Dozen)", price: 135.50 },
+      { id: "d3", name: "Jelly Donut (Dozen)", price: 148.00 },
+      { id: "d4", name: "Boston Cream (Dozen)", price: 158.00 },
     ],
-    main: [
-      { id: "m1", name: "Fish and Chips", price: 7.50 },
-      { id: "m2", name: "Roast Chicken", price: 12.75 },
-      { id: "m3", name: "Roast Beef", price: 15.00 },
-      { id: "m4", name: "Lobster", price: 25.00 },
-      { id: "m5", name: "Bedsteads", price: 10.20 },
-      { id: "m6", name: "Red Caviar", price: 12.30 },
-      { id: "m7", name: "German Sausage", price: 5.60 },
+    flours: [
+      { id: "f1", name: "All-Purpose Flour (50lb)", price: 355.00 },
+      { id: "f2", name: "Bread Flour (50lb)", price: 358.00 },
+      { id: "f3", name: "Cake Flour (50lb)", price: 403.00 },
+      { id: "f4", name: "Whole Wheat Flour (50lb)", price: 427.00 },
     ],
-    desserts: [
-      { id: "d1", name: "Chocolate Cake", price: 7.00 },
-      { id: "d2", name: "Cheesecake", price: 8.00 },
-    ],
-    drinks: [
-      { id: "dr1", name: "Irish Cream Coffee", price: 4.20 },
-      { id: "dr2", name: "Iced Tea", price: 3.50 },
-    ],
-    alcohol: [
-      { id: "a1", name: "Red Wine", price: 8.00 },
-      { id: "a2", name: "White Wine", price: 7.50 },
+    ingredients: [
+      { id: "i1", name: "Yeast (1lb)", price: 877.00 },
+      { id: "i2", name: "Baking Powder (5lb)", price: 123.50 },
+      { id: "i3", name: "Vanilla Extract (32oz)", price: 253.00 },
+      { id: "i4", name: "Chocolate Chips (10lb)", price: 284.00 },
+      { id: "i5", name: "Sprinkles (5lb)", price: 155.00 },
     ],
   } as Record<string, MenuItem[]>,
 };
