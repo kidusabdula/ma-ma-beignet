@@ -10,7 +10,6 @@ import {
   Croissant,
   CakeSlice,
   Coffee,
-  ArrowLeft,
   Utensils
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
