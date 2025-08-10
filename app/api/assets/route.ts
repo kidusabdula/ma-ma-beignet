@@ -14,7 +14,7 @@ type ErrorResponse = {
 export async function GET() {
   try {
     const response = await axios.get<ApiResponse>(
-      `${process.env.ERP_API_URL}/api/resource/Asset`,
+      `${process.env.ERP_API_URL}/api/resource/asset`,
       {
         headers: {
           Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,

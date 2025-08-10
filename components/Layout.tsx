@@ -38,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="p-4 border-b border-[var(--sidebar-border)]">
           <h2 className="text-lg font-extrabold flex items-center">
             <UtensilsCrossed className="mr-2 h-6 w-6" />
-            Ma Ma Beignet
+            Ma Beignet
           </h2>
         </div>
 
