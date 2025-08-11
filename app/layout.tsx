@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import LayoutComponent from "@/components/Layout";
 import "@/styles/globals.css";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             transformOrigin: "0 0",
           }}
         >
-          <LayoutComponent>{children}</LayoutComponent>
+          <ToastProvider>
+            <LayoutComponent>{children}</LayoutComponent>
+          </ToastProvider>
         </div>
       </body>
     </html>

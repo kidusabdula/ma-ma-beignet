@@ -17,6 +17,7 @@ import {
   Cell,
 } from "recharts";
 import { useState, useEffect } from "react";
+import { useStock } from "@/components/stock/StockStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Bakery-themed data
@@ -66,6 +67,7 @@ export default function StockDashboard() {
   const [currentTotalItems, setCurrentTotalItems] = useState(190);
   const [currentWarehouses, setCurrentWarehouses] = useState(179);
   const [currentStockValue, setCurrentStockValue] = useState(63.87);
+  const { state } = useStock();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -85,7 +87,15 @@ export default function StockDashboard() {
         className="flex justify-between items-center"
       >
         <h1 className="text-3xl font-bold text-[var(--card-foreground)]">Bakery Stock Dashboard</h1>
+        <div className="flex gap-2">
+          <a href="/stock/receive"><Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Receive</Button></a>
+          <a href="/stock/issue"><Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Issue</Button></a>
+          <a href="/stock/manufacture"><Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Manufacture</Button></a>
+          <a href="/stock/sell"><Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Sell</Button></a>
+          <a href="/stock/report"><Button className="bg-[var(--primary)] text-[var(--primary-foreground)]">Report</Button></a>
+        </div>
       </motion.div>
+      <div className="text-xs text-gray-400" title="Future upgrade: offline-capable PWA with background sync">Offline-capable (future upgrade)</div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -98,8 +108,8 @@ export default function StockDashboard() {
             whileHover={{ scale: 1.05 }}
             className="bg-[var(--card)] p-6 rounded-xl border border-[var(--border)] shadow-lg"
           >
-            <h3 className="text-[var(--card-foreground)] mb-2 font-semibold">Total Baked Goods</h3>
-            <p className="text-4xl font-bold text-[var(--primary)]">{currentTotalItems.toLocaleString()}</p>
+            <h3 className="text-[var(--card-foreground)] mb-2 font-semibold">Tracked Items</h3>
+            <p className="text-4xl font-bold text-[var(--primary)]">{Object.keys(state.balances).length}</p>
             <p className="text-sm text-green-500">+2% since yesterday</p>
           </motion.div>
         </AnimatePresence>
