@@ -21,6 +21,11 @@ import {
   ClipboardCheck,
   PackagePlus,
   ShoppingCart, // Added for Sales icon
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Factory,
+  Truck,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -296,6 +301,60 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   {isStockOpen && (
                     <div className="pl-8 space-y-1">
+                      <Link href="/stock">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Link href="/stock/receive">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <ArrowDownToLine className="h-4 w-4" />
+                          Receive
+                        </Button>
+                      </Link>
+                      <Link href="/stock/issue">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <ArrowUpFromLine className="h-4 w-4" />
+                          Issue to Production
+                        </Button>
+                      </Link>
+                      <Link href="/stock/manufacture">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <Factory className="h-4 w-4" />
+                          Manufacture
+                        </Button>
+                      </Link>
+                      <Link href="/stock/sell">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <Truck className="h-4 w-4" />
+                          Delivery Note / Sell
+                        </Button>
+                      </Link>
+                      <Link href="/stock/report">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 px-2 text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                          Stock Reports
+                        </Button>
+                      </Link>
                       <Link href="/stock/item">
                         <Button
                           variant="ghost"
