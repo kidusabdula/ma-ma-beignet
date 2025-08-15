@@ -210,7 +210,7 @@ export default function ProductionPlanningReport() {
                 <TableCell className="text-[var(--card-foreground)]">
                   {plan.allocated}
                 </TableCell>
-              </TableRow>
+               </TableRow>
             ))}
           </TableBody>
         </Table>
