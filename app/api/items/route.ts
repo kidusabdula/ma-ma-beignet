@@ -1,174 +1,78 @@
-import { NextResponse } from "next/server";
-import axios, { AxiosError } from "axios";
+import { NextRequest } from 'next/server';
+import { frappeClient } from '@/lib/frappe-client';
+import { handleApiRequest, withEndpointLogging } from '@/lib/api-template';
+import { Item, ItemCreateRequest, ItemUpdateRequest } from '@/types/item';
 
-type ApiResponse = {
-  data?: unknown;
-};
+// GET - Fetch all items
+export async function GET(request: NextRequest) {
+  return handleApiRequest<{ items: Item[] }>(
+    withEndpointLogging('/api/items - GET')(async () => {
+      const { searchParams } = new URL(request.url);
+      const limit = searchParams.get('limit') || '100';
 
-type ErrorResponse = {
-  error: string;
-  details?: string;
-  statusCode?: number;
-};
+      const items = await frappeClient.db.getDocList('Item', {
+        fields: ['name', 'item_code', 'item_name', 'stock_uom', 'item_group', 'brand', 'is_stock_item'],
+        orderBy: { field: 'modified', order: 'desc' },
+        limit: parseInt(limit),
+      });
 
-export async function GET() {
-  try {
-    const response = await axios.get<ApiResponse>(
-      `${process.env.ERP_API_URL}/api/resource/Item`,
-      {
-        headers: {
-          Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
-        },
-        params: { fields: '["name","item_name","stock_qty"]' },
-      }
-    );
+      return { items };
+    })
+  );
+}
 
-    if (!response.data) {
-      throw new Error("No items received from API");
-    }
+// POST - Create new item
+export async function POST(request: NextRequest) {
+  return handleApiRequest<{ item: Item }>(
+    withEndpointLogging('/api/items - POST')(async () => {
+      const data: ItemCreateRequest = await request.json();
 
-    return NextResponse.json(response.data);
-  } catch (err) {
-    let errorResponse: ErrorResponse = {
-      error: "An unexpected error occurred",
-    };
-
-    if (axios.isAxiosError(err)) {
-      const axiosError = err as AxiosError;
-      errorResponse = {
-        error: "API request failed",
-        details: axiosError.message,
-        statusCode: axiosError.response?.status || 500,
-      };
-    } else if (err instanceof Error) {
-      errorResponse = {
-        error: "Application error",
-        details: err.message,
-      };
-    }
-
-    return NextResponse.json(errorResponse, {
-      status: errorResponse.statusCode || 500,
-    });
-  }
-
-
-  }  export async function POST(request: Request) {
-    try {
-      const data = await request.json();
       if (!data.item_name || !data.stock_uom) {
-        throw new Error("Missing required fields: item_name or stock_uom");
+        throw new Error('Missing required fields: item_name and stock_uom');
       }
-      const response = await axios.post(
-        `${process.env.ERP_API_URL}/api/resource/Item`,
-        data,
-        {
-          headers: {
-            Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
-          },
-        }
-      );
-      return NextResponse.json(response.data, { status: 201 });
-    } catch (err) {
-      let errorResponse: ErrorResponse = {
-        error: "An unexpected error occurred",
-      };
-  
-      if (axios.isAxiosError(err)) {
-        const axiosError = err as AxiosError;
-        errorResponse = {
-          error: "API request failed",
-          details: axiosError.message,
-          statusCode: axiosError.response?.status || 500,
-        };
-      } else if (err instanceof Error) {
-        errorResponse = {
-          error: "Application error",
-          details: err.message,
-        };
-      }
-  
-      return NextResponse.json(errorResponse, {
-        status: errorResponse.statusCode || 500,
-      });
-    }
-  }
 
-  export async function PUT(request: Request) {
-    try {
+      if (!data.item_code) {
+        data.item_code = data.item_name
+          .toLowerCase()
+          .replace(/\\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '');
+      }
+
+      const item = await frappeClient.db.createDoc('Item', data);
+      return { item };
+    })
+  );
+}
+
+// PUT - Update item
+export async function PUT(request: NextRequest) {
+  return handleApiRequest<{ item: Item }>(
+    withEndpointLogging('/api/items - PUT')(async () => {
       const { searchParams } = new URL(request.url);
       const name = searchParams.get('name');
-      if (!name) throw new Error("Item name required");
-      const data = await request.json();
-      const response = await axios.put(
-        `${process.env.ERP_API_URL}/api/resource/Item/${name}`,
-        data,
-        {
-          headers: {
-            Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
-          },
-        }
-      );
-      return NextResponse.json(response.data);
-    } catch (err) {
-      let errorResponse: ErrorResponse = {
-        error: "An unexpected error occurred",
-      };
-  
-      if (axios.isAxiosError(err)) {
-        const axiosError = err as AxiosError;
-        errorResponse = {
-          error: "API request failed",
-          details: axiosError.message,
-          statusCode: axiosError.response?.status || 500,
-        };
-      } else if (err instanceof Error) {
-        errorResponse = {
-          error: "Application error",
-          details: err.message,
-        };
-      }
-  
-      return NextResponse.json(errorResponse, {
-        status: errorResponse.statusCode || 500,
-      });
-    }
-  }
 
-  export async function DELETE(request: Request) {
-    try {
+      if (!name) throw new Error('Item name parameter is required');
+
+      const data: ItemUpdateRequest = await request.json();
+      const { name: _, ...updateData } = data;
+
+      const item = await frappeClient.db.updateDoc('Item', name, updateData);
+      return { item };
+    })
+  );
+}
+
+// DELETE - Delete item
+export async function DELETE(request: NextRequest) {
+  return handleApiRequest<{ message: string }>(
+    withEndpointLogging('/api/items - DELETE')(async () => {
       const { searchParams } = new URL(request.url);
       const name = searchParams.get('name');
-      if (!name) throw new Error("Item name required");
-      const response = await axios.delete(
-        `${process.env.ERP_API_URL}/api/resource/Item/${name}`,
-        {
-          headers: {
-            Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
-          },
-        }
-      );
-      return NextResponse.json(response.data);
-    } catch (err) {
-      let errorResponse: ErrorResponse = {
-        error: "An unexpected error occurred",
-      };
-  
-      if (axios.isAxiosError(err)) {
-        const axiosError = err as AxiosError;
-        errorResponse = {
-          error: "API request failed",
-          details: axiosError.message,
-          statusCode: axiosError.response?.status || 500,
-        };
-      } else if (err instanceof Error) {
-        errorResponse = {
-          error: "Application error",
-          details: err.message,
-        };
-      }
-  
-      return NextResponse.json(errorResponse, {
-        status: errorResponse.statusCode || 500,
-      });
-    }}
+
+      if (!name) throw new Error('Item name parameter is required');
+
+      await frappeClient.db.deleteDoc('Item', name);
+      return { message: `Item ${name} deleted successfully` };
+    })
+  );
+}

@@ -1,55 +1,26 @@
-import { NextResponse } from "next/server";
-import axios, { AxiosError } from "axios";
+// app/api/test-api/route.ts
+// import { NextResponse } from 'next/server';
+import { frappeClient } from '@/lib/frappe-client';
+import { handleApiRequest, withEndpointLogging } from '@/lib/api-template';
 
-type ApiResponse = {
-  message?: string;
-  data?: unknown;
-  user?: string;
-};
-
-type ErrorResponse = {
-  error: string;
-  details?: string;
-  statusCode?: number;
-};
+interface TestApiResponse {
+  user: string;
+  timestamp: string;
+}
 
 export async function GET() {
-  try {
-    const response = await axios.get<ApiResponse>(
-      `${process.env.ERP_API_URL}/api/method/frappe.auth.get_logged_user`,
-      {
-        headers: {
-          Authorization: `token ${process.env.ERP_API_KEY}:${process.env.ERP_API_SECRET}`,
-        },
+  return handleApiRequest<TestApiResponse>(
+    withEndpointLogging('/api/test-api')(async () => {
+      const user = await frappeClient.auth.getLoggedInUser();
+      
+      if (!user) {
+        throw new Error('No user data received from API');
       }
-    );
 
-    if (!response.data) {
-      throw new Error("No data received from API");
-    }
-
-    return NextResponse.json(response.data);
-  } catch (err) {
-    let errorResponse: ErrorResponse = {
-      error: "An unexpected error occurred",
-    };
-
-    if (axios.isAxiosError(err)) {
-      const axiosError = err as AxiosError;
-      errorResponse = {
-        error: "API request failed",
-        details: axiosError.message,
-        statusCode: axiosError.response?.status || 500,
+      return {
+        user,
+        timestamp: new Date().toISOString(),
       };
-    } else if (err instanceof Error) {
-      errorResponse = {
-        error: "Application error",
-        details: err.message,
-      };
-    }
-
-    return NextResponse.json(errorResponse, {
-      status: errorResponse.statusCode || 500,
-    });
-  }
+    })
+  );
 }

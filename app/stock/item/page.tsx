@@ -1,6 +1,6 @@
-"use client";
-
+'use client';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -10,186 +10,387 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/toast";
+import { motion } from "framer-motion";
+import useSWR, { mutate } from "swr";
+import { useState, ChangeEvent } from "react";
 
-// Image URLs for each item (using Unsplash and other public sources)
-const itemImages = {
-  "Beignet Mix": "https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Croissant Dough": "https://images.unsplash.com/photo-1589010588553-46e7c21788?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Sugar Glaze": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Chocolate Filling": "https://images.unsplash.com/photo-1575377427642-087cf684f29d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Almond Paste": "https://images.unsplash.com/photo-1575377427642-087cf684f29d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Baguette Flour": "https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Pastry Cream": "https://images.unsplash.com/photo-1562440499-64c9a111f713?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Brioche Dough": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Fruit Jam": "https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-  "Sourdough Starter": "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
+// Type definitions
+interface Item {
+  name: string;
+  item_name: string;
+  item_group: string;
+  stock_uom: string;
+  disabled: boolean;
+  modified: string;
+}
+
+interface Filters {
+  name: string;
+  group: string;
+  status: string;
+  id: string;
+}
+
+interface FormData {
+  item_name: string;
+  item_group: string;
+  stock_uom: string;
+  disabled: boolean;
+}
+
+interface ItemsResponse {
+  data: Item[];
+}
+
+interface ApiError extends Error {
+  message: string;
+}
+
+const fetcher = async (url: string): Promise<ItemsResponse> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch items");
+  }
+  return response.json();
 };
 
-const initialItems = [
-  { name: "Beignet Mix", status: "Enabled", group: "Flour Products", id: "BAKE-001", lastUpdated: "3d" },
-  { name: "Croissant Dough", status: "Enabled", group: "Dough Products", id: "BAKE-002", lastUpdated: "3d" },
-  { name: "Sugar Glaze", status: "Enabled", group: "Toppings", id: "BAKE-003", lastUpdated: "3d" },
-  { name: "Chocolate Filling", status: "Enabled", group: "Fillings", id: "BAKE-004", lastUpdated: "3d" },
-  { name: "Almond Paste", status: "Enabled", group: "Fillings", id: "BAKE-005", lastUpdated: "3d" },
-  { name: "Baguette Flour", status: "Enabled", group: "Flour Products", id: "BAKE-006", lastUpdated: "1w" },
-  { name: "Pastry Cream", status: "Enabled", group: "Toppings", id: "BAKE-007", lastUpdated: "1w" },
-  { name: "Brioche Dough", status: "Enabled", group: "Dough Products", id: "BAKE-008", lastUpdated: "1w" },
-  { name: "Fruit Jam", status: "Enabled", group: "Fillings", id: "BAKE-009", lastUpdated: "1m" },
-  { name: "Sourdough Starter", status: "Enabled", group: "Flour Products", id: "BAKE-010", lastUpdated: "1m" },
-];
-
 export default function ItemPage() {
-  const [items, setItems] = useState(initialItems);
-  const [filters, setFilters] = useState({
+  const { push: toast } = useToast();
+  const [filters, setFilters] = useState<Filters>({
     name: "",
-    group: "",
-    variantOf: "",
+    group: "all",
     status: "all",
+    id: "",
   });
-  const router = useRouter();
+  const [form, setForm] = useState<FormData>({
+    item_name: "",
+    item_group: "",
+    stock_uom: "",
+    disabled: false,
+  });
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleFilterChange = (field: string, value: string) => {
-    const newFilters = { ...filters, [field]: value };
-    setFilters(newFilters);
+  const { data: itemsData, error } = useSWR<ItemsResponse, ApiError>("/api/items", fetcher);
+  const items = itemsData?.data || [];
 
-    const filtered = initialItems.filter((item) =>
-      (newFilters.name ? item.name.toLowerCase().includes(newFilters.name.toLowerCase()) : true) &&
-      (newFilters.group ? item.group.toLowerCase().includes(newFilters.group.toLowerCase()) : true) &&
-      (newFilters.status !== "all" ? item.status === newFilters.status : true)
-    );
-    setItems(filtered);
+  // Fetch item groups for dropdown
+  const { data: groupsData } = useSWR<ItemsResponse, ApiError>("/api/items?fields=[\"item_group\"]", fetcher);
+  const itemGroups = [...new Set(groupsData?.data?.map(item => item.item_group) || [])];
+
+  const handleFilterChange = (field: keyof Filters, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const filteredItems = items.filter((item) =>
+    (filters.name ? item.item_name.toLowerCase().includes(filters.name.toLowerCase()) : true) &&
+    (filters.group !== "all" ? item.item_group.toLowerCase().includes(filters.group.toLowerCase()) : true) &&
+    (filters.status !== "all" ? (filters.status === "Enabled" ? !item.disabled : item.disabled) : true) &&
+    (filters.id ? item.name.toLowerCase().includes(filters.id.toLowerCase()) : true)
+  );
+
+  const handleFormChange = (field: keyof FormData, value: string | boolean) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, field: keyof FormData) => {
+    handleFormChange(field, e.target.value);
+  };
+
+  const handleSelectChange = (field: keyof FormData, value: string) => {
+    if (field === 'disabled') {
+      handleFormChange(field, value === "Disabled");
+    } else {
+      handleFormChange(field, value);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.item_name || !form.item_group || !form.stock_uom) {
+      toast({ variant: "error", title: "Error", description: "All fields except status are required." });
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        item_name: form.item_name,
+        item_group: form.item_group,
+        stock_uom: form.stock_uom,
+        disabled: form.disabled,
+      };
+      
+      if (editId) {
+        await fetch(`/api/items?name=${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Success", description: "Item updated." });
+      } else {
+        await fetch("/api/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        toast({ title: "Success", description: "Item added." });
+      }
+      mutate("/api/items");
+      setForm({ item_name: "", item_group: "", stock_uom: "", disabled: false });
+      setEditId(null);
+      setIsFormOpen(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save item.";
+      toast({ variant: "error", title: "Error", description: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (item: Item) => {
+    setForm({
+      item_name: item.item_name,
+      item_group: item.item_group,
+      stock_uom: item.stock_uom,
+      disabled: item.disabled,
+    });
+    setEditId(item.name);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (name: string) => {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+    setLoading(true);
+    try {
+      await fetch(`/api/items?name=${name}`, { method: "DELETE" });
+      toast({ title: "Success", description: "Item deleted." });
+      mutate("/api/items");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete item.";
+      toast({ variant: "error", title: "Error", description: errorMessage });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Items</h1>
-        <div className="space-x-2">
-          <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">List View</Button>
-          <Button
-            variant="default"
-            className="bg-[var(--primary)] text-[var(--primary-foreground)]"
-            onClick={() => router.push("add-item")}
-          >
-            Add Item
-          </Button>
-        </div>
-      </div>
-
-      <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Item Name</label>
-            <Input
-              placeholder="Item Name"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.name}
-              onChange={(e) => handleFilterChange("name", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Item Group</label>
-            <Input
-              placeholder="Item Group"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.group}
-              onChange={(e) => handleFilterChange("group", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Variants Of</label>
-            <Input
-              placeholder="Variants Of"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.variantOf}
-              onChange={(e) => handleFilterChange("variantOf", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Status</label>
-            <Select
-              value={filters.status}
-              onValueChange={(value) => handleFilterChange("status", value)}
+    <div className="min-h-screen bg-[#1e2a44] text-white p-8">
+      <Card className="bg-[#2a3a5a] border-[#00b7eb]">
+        <CardHeader>
+          <CardTitle className="text-2xl text-[#00b7eb]">Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              className="bg-[#00b7eb] hover:bg-[#00a3d3] text-white"
+              onClick={() => {
+                setForm({ item_name: "", item_group: "", stock_uom: "", disabled: false });
+                setEditId(null);
+                setIsFormOpen(!isFormOpen);
+              }}
             >
-              <SelectTrigger className="w-full bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]">
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Enabled">Enabled</SelectItem>
-                <SelectItem value="Disabled">Disabled</SelectItem>
-              </SelectContent>
-            </Select>
+              {isFormOpen ? "Cancel" : "Add Item"}
+            </Button>
           </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">ID</label>
-            <Input
-              placeholder="ID"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.name}
-              onChange={(e) => handleFilterChange("name", e.target.value)}
-            />
-          </div>
-        </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-[var(--card-foreground)] w-4">
-                  <input type="checkbox" className="mr-2" />
-                </TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Item</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Status</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Item Group</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">ID</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Last Updated On</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="text-[var(--card-foreground)]">
-                    <input type="checkbox" className="mr-2" />
-                  </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 mr-3">
-                        <Image
-                          className="rounded-full object-cover"
-                          src={itemImages[item.name as keyof typeof itemImages]}
-                          alt={item.name}
-                          width={40}
-                          height={40}
-                        />
-                      </div>
-                      <div>
-                        <div className="font-medium">{item.name}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">
-                    <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs">{item.status}</span>
-                  </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{item.group}</TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{item.id}</TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{item.lastUpdated}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex justify-between items-center mt-4 text-[var(--card-foreground)]">
-          <span>Showing {items.length} of {initialItems.length} items</span>
-          <div className="space-x-2">
-            <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">Filters</Button>
+          {isFormOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 p-4 bg-[#1e2a44] border border-[#00b7eb] rounded"
+            >
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  placeholder="Item Name"
+                  value={form.item_name}
+                  onChange={(e) => handleInputChange(e, "item_name")}
+                  aria-label="Item Name"
+                  className="bg-[#1e2a44] text-white border-[#00b7eb]"
+                />
+                <Select
+                  value={form.item_group}
+                  onValueChange={(value) => handleSelectChange("item_group", value)}
+                >
+                  <SelectTrigger aria-label="Select item group">
+                    <SelectValue placeholder="Select Item Group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="placeholder" disabled>
+                      Select Item Group
+                    </SelectItem>
+                    {itemGroups.map((group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="Stock UOM (e.g., Kg, Unit)"
+                  value={form.stock_uom}
+                  onChange={(e) => handleInputChange(e, "stock_uom")}
+                  aria-label="Stock UOM"
+                  className="bg-[#1e2a44] text-white border-[#00b7eb]"
+                />
+                <Select
+                  value={form.disabled ? "Disabled" : "Enabled"}
+                  onValueChange={(value) => handleSelectChange("disabled", value)}
+                >
+                  <SelectTrigger aria-label="Select status">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Enabled">Enabled</SelectItem>
+                    <SelectItem value="Disabled">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-[#00b7eb] hover:bg-[#00a3d3] text-white"
+                >
+                  {loading ? "Submitting..." : editId ? "Update Item" : "Add Item"}
+                </Button>
+              </form>
+            </motion.div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label className="text-[#00b7eb] block mb-1">Item Name</label>
+              <Input
+                placeholder="Item Name"
+                value={filters.name}
+                onChange={(e) => handleFilterChange("name", e.target.value)}
+                aria-label="Filter by Item Name"
+                className="bg-[#1e2a44] text-white border-[#00b7eb]"
+              />
+            </div>
+            <div>
+              <label className="text-[#00b7eb] block mb-1">Item Group</label>
+              <Select
+                value={filters.group}
+                onValueChange={(value) => handleFilterChange("group", value)}
+              >
+                <SelectTrigger aria-label="Filter by Item Group">
+                  <SelectValue placeholder="All Groups" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Groups</SelectItem>
+                  {itemGroups.map((group) => (
+                    <SelectItem key={group} value={group}>
+                      {group}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[#00b7eb] block mb-1">Status</label>
+              <Select
+                value={filters.status}
+                onValueChange={(value) => handleFilterChange("status", value)}
+              >
+                <SelectTrigger aria-label="Filter by Status">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="Enabled">Enabled</SelectItem>
+                  <SelectItem value="Disabled">Disabled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[#00b7eb] block mb-1">ID</label>
+              <Input
+                placeholder="ID"
+                value={filters.id}
+                onChange={(e) => handleFilterChange("id", e.target.value)}
+                aria-label="Filter by ID"
+                className="bg-[#1e2a44] text-white border-[#00b7eb]"
+              />
+            </div>
           </div>
-        </div>
-      </div>
+
+          {error && (
+            <p className="text-red-500">Error loading items: {error.message}</p>
+          )}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-[#00b7eb] w-4">
+                    <input type="checkbox" aria-label="Select all items" />
+                  </TableHead>
+                  <TableHead className="text-[#00b7eb]">Item</TableHead>
+                  <TableHead className="text-[#00b7eb]">Status</TableHead>
+                  <TableHead className="text-[#00b7eb]">Item Group</TableHead>
+                  <TableHead className="text-[#00b7eb]">ID</TableHead>
+                  <TableHead className="text-[#00b7eb]">Last Updated</TableHead>
+                  <TableHead className="text-[#00b7eb]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredItems.map((item, index) => (
+                  <motion.tr
+                    key={item.name}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <TableCell>
+                      <input type="checkbox" aria-label={`Select ${item.item_name}`} />
+                    </TableCell>
+                    <TableCell>{item.item_name}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          item.disabled ? "bg-red-500" : "bg-green-500"
+                        } text-white`}
+                      >
+                        {item.disabled ? "Disabled" : "Enabled"}
+                      </span>
+                    </TableCell>
+                    <TableCell>{item.item_group}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{new Date(item.modified).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        className="mr-2 border-[#00b7eb] text-[#00b7eb]"
+                        onClick={() => handleEdit(item)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleDelete(item.name)}
+                        disabled={loading}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <span>Showing {filteredItems.length} of {items.length} items</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
