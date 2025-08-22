@@ -25,11 +25,22 @@ import { useState, ChangeEvent } from "react";
 // Type definitions
 interface Item {
   name: string;
+  item_code: string;
   item_name: string;
   item_group: string;
   stock_uom: string;
-  disabled: boolean;
-  modified: string;
+  is_stock_item: number;
+  brand?: string;
+  disabled?: number;
+  modified?: string;
+}
+
+interface ItemsApiResponse {
+  success: boolean;
+  data: {
+    items: Item[];
+  };
+  message?: string;
 }
 
 interface Filters {
@@ -46,18 +57,15 @@ interface FormData {
   disabled: boolean;
 }
 
-interface ItemsResponse {
-  data: Item[];
-}
-
 interface ApiError extends Error {
   message: string;
 }
 
-const fetcher = async (url: string): Promise<ItemsResponse> => {
+const fetcher = async (url: string): Promise<ItemsApiResponse> => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("Failed to fetch items");
+    const errorData = await response.json();
+    throw new Error(errorData.details || "Failed to fetch items");
   }
   return response.json();
 };
@@ -80,12 +88,10 @@ export default function ItemPage() {
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { data: itemsData, error } = useSWR<ItemsResponse, ApiError>("/api/items", fetcher);
-  const items = itemsData?.data || [];
+  const { data: itemsData, error } = useSWR<ItemsApiResponse, ApiError>("/api/items", fetcher);
+  const items = itemsData?.data?.items || [];
 
-  // Fetch item groups for dropdown
-  const { data: groupsData } = useSWR<ItemsResponse, ApiError>("/api/items?fields=[\"item_group\"]", fetcher);
-  const itemGroups = [...new Set(groupsData?.data?.map(item => item.item_group) || [])];
+  const itemGroups = [...new Set(items.map(item => item.item_group).filter(Boolean))];
 
   const handleFilterChange = (field: keyof Filters, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }));
@@ -93,8 +99,9 @@ export default function ItemPage() {
 
   const filteredItems = items.filter((item) =>
     (filters.name ? item.item_name.toLowerCase().includes(filters.name.toLowerCase()) : true) &&
-    (filters.group !== "all" ? item.item_group.toLowerCase().includes(filters.group.toLowerCase()) : true) &&
-    (filters.status !== "all" ? (filters.status === "Enabled" ? !item.disabled : item.disabled) : true) &&
+    (filters.group !== "all" ? item.item_group === filters.group : true) &&
+    (filters.status !== "all" ?
+      (filters.status === "Enabled" ? !item.disabled : item.disabled) : true) &&
     (filters.id ? item.name.toLowerCase().includes(filters.id.toLowerCase()) : true)
   );
 
@@ -128,22 +135,26 @@ export default function ItemPage() {
         stock_uom: form.stock_uom,
         disabled: form.disabled,
       };
-      
-      if (editId) {
-        await fetch(`/api/items?name=${editId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        toast({ title: "Success", description: "Item updated." });
-      } else {
-        await fetch("/api/items", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        toast({ title: "Success", description: "Item added." });
+
+      const url = editId ? `/api/items?name=${editId}` : '/api/items';
+      const method = editId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || `Failed to ${editId ? 'update' : 'create'} item`);
       }
+
+      toast({
+        title: "Success",
+        description: `Item ${editId ? 'updated' : 'added'} successfully.`
+      });
+
       mutate("/api/items");
       setForm({ item_name: "", item_group: "", stock_uom: "", disabled: false });
       setEditId(null);
@@ -161,18 +172,27 @@ export default function ItemPage() {
       item_name: item.item_name,
       item_group: item.item_group,
       stock_uom: item.stock_uom,
-      disabled: item.disabled,
+      disabled: Boolean(item.disabled),
     });
     setEditId(item.name);
     setIsFormOpen(true);
   };
 
   const handleDelete = async (name: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    // Replaced confirm with a direct action for this example.
+    // In a real app, you'd use a custom modal for confirmation.
     setLoading(true);
     try {
-      await fetch(`/api/items?name=${name}`, { method: "DELETE" });
-      toast({ title: "Success", description: "Item deleted." });
+      const response = await fetch(`/api/items?name=${name}`, {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Failed to delete item");
+      }
+
+      toast({ title: "Success", description: "Item deleted successfully." });
       mutate("/api/items");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to delete item.";
@@ -183,22 +203,22 @@ export default function ItemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1e2a44] text-white p-8">
-      <Card className="bg-[#2a3a5a] border-[#00b7eb]">
+    <div className="min-h-screen bg-black text-white p-8 font-sans">
+      <Card className="bg-black border border-gray-800 shadow-lg rounded-lg">
         <CardHeader>
-          <CardTitle className="text-2xl text-[#00b7eb]">Items</CardTitle>
+          <CardTitle className="text-2xl text-white font-semibold">Items Management</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-6">
             <Button
-              className="bg-[#00b7eb] hover:bg-[#00a3d3] text-white"
+              className="bg-white text-black hover:bg-gray-200 border border-gray-700 rounded-md"
               onClick={() => {
                 setForm({ item_name: "", item_group: "", stock_uom: "", disabled: false });
                 setEditId(null);
                 setIsFormOpen(!isFormOpen);
               }}
             >
-              {isFormOpen ? "Cancel" : "Add Item"}
+              {isFormOpen ? "Cancel" : "Add New Item"}
             </Button>
           </div>
 
@@ -207,138 +227,184 @@ export default function ItemPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-6 p-4 bg-[#1e2a44] border border-[#00b7eb] rounded"
+              className="mb-6 p-6 bg-gray-900/50 border border-gray-800 rounded-lg"
             >
+              <h3 className="text-lg font-medium text-white mb-4">
+                {editId ? "Edit Item" : "Create New Item"}
+              </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  placeholder="Item Name"
-                  value={form.item_name}
-                  onChange={(e) => handleInputChange(e, "item_name")}
-                  aria-label="Item Name"
-                  className="bg-[#1e2a44] text-white border-[#00b7eb]"
-                />
-                <Select
-                  value={form.item_group}
-                  onValueChange={(value) => handleSelectChange("item_group", value)}
-                >
-                  <SelectTrigger aria-label="Select item group">
-                    <SelectValue placeholder="Select Item Group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="placeholder" disabled>
-                      Select Item Group
-                    </SelectItem>
-                    {itemGroups.map((group) => (
-                      <SelectItem key={group} value={group}>
-                        {group}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="Stock UOM (e.g., Kg, Unit)"
-                  value={form.stock_uom}
-                  onChange={(e) => handleInputChange(e, "stock_uom")}
-                  aria-label="Stock UOM"
-                  className="bg-[#1e2a44] text-white border-[#00b7eb]"
-                />
-                <Select
-                  value={form.disabled ? "Disabled" : "Enabled"}
-                  onValueChange={(value) => handleSelectChange("disabled", value)}
-                >
-                  <SelectTrigger aria-label="Select status">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Enabled">Enabled</SelectItem>
-                    <SelectItem value="Disabled">Disabled</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Item Name *
+                  </label>
+                  <Input
+                    placeholder="Enter item name"
+                    value={form.item_name}
+                    onChange={(e) => handleInputChange(e, "item_name")}
+                    aria-label="Item Name"
+                    className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Item Group *
+                  </label>
+                  <Select
+                    value={form.item_group}
+                    onValueChange={(value) => handleSelectChange("item_group", value)}
+                  >
+                    <SelectTrigger
+                      aria-label="Select item group"
+                      className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    >
+                      <SelectValue placeholder="Select Item Group" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black text-white border-gray-700">
+                      <SelectItem value="">Select Item Group</SelectItem>
+                      {itemGroups.map((group) => (
+                        <SelectItem key={group} value={group} className="focus:bg-gray-800">
+                          {group}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Stock Unit of Measure *
+                  </label>
+                  <Input
+                    placeholder="e.g., Nos, Kg, Unit"
+                    value={form.stock_uom}
+                    onChange={(e) => handleInputChange(e, "stock_uom")}
+                    aria-label="Stock UOM"
+                    className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Status
+                  </label>
+                  <Select
+                    value={form.disabled ? "Disabled" : "Enabled"}
+                    onValueChange={(value) => handleSelectChange("disabled", value)}
+                  >
+                    <SelectTrigger
+                      aria-label="Select status"
+                      className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    >
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black text-white border-gray-700">
+                      <SelectItem value="Enabled" className="focus:bg-gray-800">Enabled</SelectItem>
+                      <SelectItem value="Disabled" className="focus:bg-gray-800">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#00b7eb] hover:bg-[#00a3d3] text-white"
+                  className="bg-white text-black hover:bg-gray-200 border border-gray-700 rounded-md"
                 >
-                  {loading ? "Submitting..." : editId ? "Update Item" : "Add Item"}
+                  {loading ? "Processing..." : editId ? "Update Item" : "Create Item"}
                 </Button>
               </form>
             </motion.div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
             <div>
-              <label className="text-[#00b7eb] block mb-1">Item Name</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Item Name</label>
               <Input
-                placeholder="Item Name"
+                placeholder="Filter by name"
                 value={filters.name}
                 onChange={(e) => handleFilterChange("name", e.target.value)}
                 aria-label="Filter by Item Name"
-                className="bg-[#1e2a44] text-white border-[#00b7eb]"
+                className="bg-black text-white border-gray-700 rounded-md"
               />
             </div>
+
             <div>
-              <label className="text-[#00b7eb] block mb-1">Item Group</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Item Group</label>
               <Select
                 value={filters.group}
                 onValueChange={(value) => handleFilterChange("group", value)}
               >
-                <SelectTrigger aria-label="Filter by Item Group">
+                <SelectTrigger aria-label="Filter by Item Group" className="bg-black text-white border-gray-700 rounded-md">
                   <SelectValue placeholder="All Groups" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Groups</SelectItem>
+                <SelectContent className="bg-black text-white border-gray-700">
+                  <SelectItem value="all" className="focus:bg-gray-800">All Groups</SelectItem>
                   {itemGroups.map((group) => (
-                    <SelectItem key={group} value={group}>
+                    <SelectItem key={group} value={group} className="focus:bg-gray-800">
                       {group}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div>
-              <label className="text-[#00b7eb] block mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
               <Select
                 value={filters.status}
                 onValueChange={(value) => handleFilterChange("status", value)}
               >
-                <SelectTrigger aria-label="Filter by Status">
-                  <SelectValue placeholder="All" />
+                <SelectTrigger aria-label="Filter by Status" className="bg-black text-white border-gray-700 rounded-md">
+                  <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Enabled">Enabled</SelectItem>
-                  <SelectItem value="Disabled">Disabled</SelectItem>
+                <SelectContent className="bg-black text-white border-gray-700">
+                  <SelectItem value="all" className="focus:bg-gray-800">All Status</SelectItem>
+                  <SelectItem value="Enabled" className="focus:bg-gray-800">Enabled</SelectItem>
+                  <SelectItem value="Disabled" className="focus:bg-gray-800">Disabled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
             <div>
-              <label className="text-[#00b7eb] block mb-1">ID</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">ID</label>
               <Input
-                placeholder="ID"
+                placeholder="Filter by ID"
                 value={filters.id}
                 onChange={(e) => handleFilterChange("id", e.target.value)}
                 aria-label="Filter by ID"
-                className="bg-[#1e2a44] text-white border-[#00b7eb]"
+                className="bg-black text-white border-gray-700 rounded-md"
               />
             </div>
           </div>
 
+          {/* Error State */}
           {error && (
-            <p className="text-red-500">Error loading items: {error.message}</p>
+            <div className="mb-4 p-4 bg-red-900/50 border border-red-500/30 rounded-lg">
+              <p className="text-red-400">Error loading items: {error.message}</p>
+            </div>
           )}
-          <div className="overflow-x-auto">
+
+          {/* Items Table */}
+          <div className="overflow-x-auto border border-gray-800 rounded-lg">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[#00b7eb] w-4">
-                    <input type="checkbox" aria-label="Select all items" />
+              <TableHeader className="bg-gray-900/50">
+                <TableRow className="border-b border-gray-800">
+                  <TableHead className="text-white font-medium w-12">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all items"
+                      className="bg-black border-gray-600 rounded text-white focus:ring-white"
+                    />
                   </TableHead>
-                  <TableHead className="text-[#00b7eb]">Item</TableHead>
-                  <TableHead className="text-[#00b7eb]">Status</TableHead>
-                  <TableHead className="text-[#00b7eb]">Item Group</TableHead>
-                  <TableHead className="text-[#00b7eb]">ID</TableHead>
-                  <TableHead className="text-[#00b7eb]">Last Updated</TableHead>
-                  <TableHead className="text-[#00b7eb]">Actions</TableHead>
+                  <TableHead className="text-white font-medium">Item Name</TableHead>
+                  <TableHead className="text-white font-medium">Status</TableHead>
+                  <TableHead className="text-white font-medium">Item Group</TableHead>
+                  <TableHead className="text-white font-medium">Item Code</TableHead>
+                  <TableHead className="text-white font-medium">UOM</TableHead>
+                  <TableHead className="text-white font-medium">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -347,50 +413,77 @@ export default function ItemPage() {
                     key={item.name}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="border-b border-gray-800 hover:bg-gray-900"
                   >
                     <TableCell>
-                      <input type="checkbox" aria-label={`Select ${item.item_name}`} />
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${item.item_name}`}
+                        className="bg-black border-gray-600 rounded text-white focus:ring-white"
+                      />
                     </TableCell>
-                    <TableCell>{item.item_name}</TableCell>
+                    <TableCell className="font-medium text-white">{item.item_name}</TableCell>
                     <TableCell>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          item.disabled ? "bg-red-500" : "bg-green-500"
-                        } text-white`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          item.disabled
+                            ? "bg-gray-700 text-gray-300"
+                            : "bg-green-900/50 text-green-400"
+                        }`}
                       >
                         {item.disabled ? "Disabled" : "Enabled"}
                       </span>
                     </TableCell>
-                    <TableCell>{item.item_group}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{new Date(item.modified).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-gray-400">{item.item_group}</TableCell>
+                    <TableCell className="font-mono text-sm text-gray-500">{item.item_code}</TableCell>
+                    <TableCell className="text-gray-400">{item.stock_uom}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        className="mr-2 border-[#00b7eb] text-[#00b7eb]"
-                        onClick={() => handleEdit(item)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDelete(item.name)}
-                        disabled={loading}
-                      >
-                        Delete
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          className="border-gray-700 text-white hover:bg-gray-800 rounded-md"
+                          onClick={() => handleEdit(item)}
+                          size="sm"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="border-red-500/50 text-red-500 hover:bg-red-900/20 rounded-md"
+                          onClick={() => handleDelete(item.name)}
+                          disabled={loading}
+                          size="sm"
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </motion.tr>
                 ))}
               </TableBody>
             </Table>
           </div>
-          <div className="flex justify-between items-center mt-4">
-            <span>Showing {filteredItems.length} of {items.length} items</span>
+
+          {/* Empty State */}
+          {filteredItems.length === 0 && !error && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No items found matching your filters.</p>
+            </div>
+          )}
+
+          {/* Summary */}
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-800">
+            <span className="text-sm text-gray-500">
+              Showing {filteredItems.length} of {items.length} items
+            </span>
+            <div className="text-sm text-gray-500">
+              Last updated: {new Date().toLocaleDateString()}
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+                    

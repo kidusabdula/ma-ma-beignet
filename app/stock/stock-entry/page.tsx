@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -10,149 +11,410 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
-import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/toast";
+import { motion } from "framer-motion";
+import useSWR, { mutate } from "swr";
+import { useState, ChangeEvent } from "react";
+import { StockEntry, StockEntryCreateRequest } from "@/types/stock-entry";
 
-const initialEntries = [
-  { id: "ENT-001", item: "Flour (50kg)", quantity: 100, status: "In Progress", lastUpdated: "2d" },
-  { id: "ENT-002", item: "Sugar (25kg)", quantity: 50, status: "Completed", lastUpdated: "2d" },
-  { id: "ENT-003", item: "Butter (10kg)", quantity: 20, status: "In Progress", lastUpdated: "2d" },
-  { id: "ENT-004", item: "Eggs (100ct)", quantity: 200, status: "Completed", lastUpdated: "3d" },
-  { id: "ENT-005", item: "Chocolate Chips (5kg)", quantity: 10, status: "In Progress", lastUpdated: "3d" },
-  { id: "ENT-006", item: "Yeast (2kg)", quantity: 5, status: "Completed", lastUpdated: "1w" },
-  { id: "ENT-007", item: "Vanilla Extract (1L)", quantity: 2, status: "In Progress", lastUpdated: "1w" },
-  { id: "ENT-008", item: "Almond Flour (10kg)", quantity: 15, status: "Completed", lastUpdated: "1w" },
-  { id: "ENT-009", item: "Fruit Jam (5kg)", quantity: 8, status: "In Progress", lastUpdated: "1m" },
-  { id: "ENT-010", item: "Salt (5kg)", quantity: 10, status: "Completed", lastUpdated: "1m" },
-];
+// Type definitions
+interface StockEntriesApiResponse {
+  success: boolean;
+  data: {
+    stockEntries: StockEntry[];
+  };
+  message?: string;
+}
+
+interface Filters {
+  name: string;
+  stock_entry_type: string;
+  docstatus: string;
+}
+
+interface FormData {
+  stock_entry_type: string;
+  posting_date: string;
+}
+
+interface ApiError extends Error {
+  message: string;
+}
+
+const fetcher = async (url: string): Promise<StockEntriesApiResponse> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.details || "Failed to fetch stock entries");
+  }
+  return response.json();
+};
 
 export default function StockEntryPage() {
-  const [entries, setEntries] = useState(initialEntries);
-  const [filters, setFilters] = useState({
-    id: "",
-    item: "",
-    quantity: "",
-    status: "all", // Changed from empty string to "all"
+  const { push: toast } = useToast();
+  const [filters, setFilters] = useState<Filters>({
+    name: "",
+    stock_entry_type: "all",
+    docstatus: "all",
   });
+  const [form, setForm] = useState<FormData>({
+    stock_entry_type: "",
+    posting_date: new Date().toISOString().split('T')[0], // Default to today
+  });
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleFilterChange = (field: string, value: string) => {
-    const newFilters = { ...filters, [field]: value };
-    setFilters(newFilters);
+  const { data: stockEntriesData, error } = useSWR<StockEntriesApiResponse, ApiError>("/api/stock-entry?limit=100", fetcher);
+  const stockEntries = stockEntriesData?.data?.stockEntries || [];
 
-    const filtered = initialEntries.filter((entry) =>
-      (newFilters.id ? entry.id.toLowerCase().includes(newFilters.id.toLowerCase()) : true) &&
-      (newFilters.item ? entry.item.toLowerCase().includes(newFilters.item.toLowerCase()) : true) &&
-      (newFilters.quantity ? entry.quantity.toString().includes(newFilters.quantity) : true) &&
-      (newFilters.status !== "all" ? entry.status === newFilters.status : true)
-    );
-    setEntries(filtered);
+  const stockEntryTypes = [...new Set(stockEntries.map(entry => entry.stock_entry_type).filter(Boolean))];
+
+  const handleFilterChange = (field: keyof Filters, value: string) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const filteredStockEntries = stockEntries.filter((entry) =>
+    (filters.name ? entry.name.toLowerCase().includes(filters.name.toLowerCase()) : true) &&
+    (filters.stock_entry_type !== "all" ? entry.stock_entry_type === filters.stock_entry_type : true) &&
+    (filters.docstatus !== "all" ?
+      (filters.docstatus === "Draft" ? entry.docstatus === 0 :
+       filters.docstatus === "Submitted" ? entry.docstatus === 1 :
+       entry.docstatus === 2) : true)
+  );
+
+  const handleFormChange = (field: keyof FormData, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, field: keyof FormData) => {
+    handleFormChange(field, e.target.value);
+  };
+
+  const handleSelectChange = (field: keyof FormData, value: string) => {
+    handleFormChange(field, value);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.stock_entry_type || !form.posting_date) {
+      toast({ variant: "error", title: "Error", description: "Stock Entry Type and Posting Date are required." });
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload: StockEntryCreateRequest = {
+        stock_entry_type: form.stock_entry_type as 'Material Issue' | 'Material Receipt' | 'Material Transfer',
+        posting_date: form.posting_date,
+        items: [], // Add default empty array for items
+        company: "Default Company", // Add a placeholder for company
+      };
+
+      const url = editId ? `/api/stock-entry?name=${editId}` : '/api/stock-entry';
+      const method = editId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || `Failed to ${editId ? 'update' : 'create'} stock entry`);
+      }
+
+      toast({
+        title: "Success",
+        description: `Stock Entry ${editId ? 'updated' : 'created'} successfully.`,
+      });
+
+      mutate("/api/stock-entry?limit=100");
+      setForm({ stock_entry_type: "", posting_date: new Date().toISOString().split('T')[0] });
+      setEditId(null);
+      setIsFormOpen(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save stock entry.";
+      toast({ variant: "error", title: "Error", description: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (entry: StockEntry) => {
+    setForm({
+      stock_entry_type: entry.stock_entry_type,
+      posting_date: entry.posting_date,
+    });
+    setEditId(entry.name);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (name: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/stock-entry?name=${name}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Failed to delete stock entry");
+      }
+
+      toast({ title: "Success", description: "Stock Entry deleted successfully." });
+      mutate("/api/stock-entry?limit=100");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete stock entry.";
+      toast({ variant: "error", title: "Error", description: errorMessage });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-[var(--card-foreground)]">Stock Entries</h1>
-        <div className="space-x-2">
-          <Link href= "/stock/add-stock-entry"><Button variant="default" className="bg-[var(--primary)] text-[var(--primary-foreground)]">New Entry</Button></Link>
-        </div>
-      </div>
-
-      <div className="bg-[var(--card)] p-4 rounded-lg border border-[var(--border)]">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Entry ID</label>
-            <Input
-              placeholder="Entry ID"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.id}
-              onChange={(e) => handleFilterChange("id", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Item Name</label>
-            <Input
-              placeholder="Item Name"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.item}
-              onChange={(e) => handleFilterChange("item", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Quantity</label>
-            <Input
-              type="number"
-              placeholder="Quantity"
-              className="bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]"
-              value={filters.quantity}
-              onChange={(e) => handleFilterChange("quantity", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-[var(--card-foreground)] block mb-1">Status</label>
-            <Select
-              value={filters.status}
-              onValueChange={(value) => handleFilterChange("status", value)}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-gray-100 p-8 font-sans">
+      <Card className="bg-gray-900/80 border border-gray-700 shadow-xl rounded-xl backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-3xl font-bold text-cyan-300">Stock Entries Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-6">
+            <Button
+              className="bg-cyan-500 text-black hover:bg-cyan-400 border border-cyan-600 rounded-lg transition-all duration-200"
+              onClick={() => {
+                setForm({ stock_entry_type: "", posting_date: new Date().toISOString().split('T')[0] });
+                setEditId(null);
+                setIsFormOpen(!isFormOpen);
+              }}
             >
-              <SelectTrigger className="w-full bg-[var(--input)] text-[var(--card-foreground)] border-[var(--border)]">
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+              {isFormOpen ? "Cancel" : "Add New Stock Entry"}
+            </Button>
           </div>
-          <div></div> {/* Placeholder for symmetry */}
-        </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-[var(--card-foreground)] w-4">
-                  <input type="checkbox" className="mr-2" />
-                </TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Entry ID</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Item Name</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Quantity</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Status</TableHead>
-                <TableHead className="text-[var(--card-foreground)]">Last Updated On</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {entries.map((entry, index) => (
-                <TableRow key={index}>
-                  <TableCell className="text-[var(--card-foreground)]">
-                    <input type="checkbox" className="mr-2" />
-                  </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{entry.id}</TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{entry.item}</TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{entry.quantity}</TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">
-                    <span
-                      className={`${
-                        entry.status === "In Progress" ? "bg-yellow-500" : "bg-green-500"
-                      } text-white px-2 py-1 rounded-full text-xs`}
+          {isFormOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 p-6 bg-gray-800/50 border border-gray-700 rounded-lg"
+            >
+              <h3 className="text-lg font-medium text-cyan-200 mb-4">
+                {editId ? "Edit Stock Entry" : "Create New Stock Entry"}
+              </h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Stock Entry Type *
+                  </label>
+                  <Select
+                    value={form.stock_entry_type}
+                    onValueChange={(value) => handleSelectChange("stock_entry_type", value)}
+                  >
+                    <SelectTrigger
+                      aria-label="Select stock entry type"
+                      className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
                     >
-                      {entry.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-[var(--card-foreground)]">{entry.lastUpdated}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex justify-between items-center mt-4 text-[var(--card-foreground)]">
-          <span>Showing {entries.length} of {initialEntries.length} entries</span>
-          <div className="space-x-2">
-            <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">20</Button>
-            <Button variant="outline" className="border-[var(--border)] text-[var(--card-foreground)]">100</Button>
+                      <SelectValue placeholder="Select Stock Entry Type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
+                      <SelectItem value="">Select Stock Entry Type</SelectItem>
+                      {stockEntryTypes.map((type) => (
+                        <SelectItem key={type} value={type} className="hover:bg-gray-700">
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Posting Date *
+                  </label>
+                  <Input
+                    type="date"
+                    value={form.posting_date}
+                    onChange={(e) => handleInputChange(e, "posting_date")}
+                    aria-label="Posting Date"
+                    className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-cyan-500 text-black hover:bg-cyan-400 border border-cyan-600 rounded-lg transition-all duration-200"
+                >
+                  {loading ? "Processing..." : editId ? "Update Stock Entry" : "Create Stock Entry"}
+                </Button>
+              </form>
+            </motion.div>
+          )}
+
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Entry Name</label>
+              <Input
+                placeholder="Filter by name"
+                value={filters.name}
+                onChange={(e) => handleFilterChange("name", e.target.value)}
+                aria-label="Filter by Entry Name"
+                className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Stock Entry Type</label>
+              <Select
+                value={filters.stock_entry_type}
+                onValueChange={(value) => handleFilterChange("stock_entry_type", value)}
+              >
+                <SelectTrigger aria-label="Filter by Stock Entry Type" className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
+                  <SelectItem value="all" className="hover:bg-gray-700">All Types</SelectItem>
+                  {stockEntryTypes.map((type) => (
+                    <SelectItem key={type} value={type} className="hover:bg-gray-700">
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
+              <Select
+                value={filters.docstatus}
+                onValueChange={(value) => handleFilterChange("docstatus", value)}
+              >
+                <SelectTrigger aria-label="Filter by Status" className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
+                  <SelectItem value="all" className="hover:bg-gray-700">All Status</SelectItem>
+                  <SelectItem value="Draft" className="hover:bg-gray-700">Draft</SelectItem>
+                  <SelectItem value="Submitted" className="hover:bg-gray-700">Submitted</SelectItem>
+                  <SelectItem value="Cancelled" className="hover:bg-gray-700">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Error State */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
+              <p className="text-red-400">Error loading stock entries: {error.message}</p>
+            </div>
+          )}
+
+          {/* Stock Entries Table */}
+          <div className="overflow-x-auto border border-gray-700 rounded-lg">
+            <Table>
+              <TableHeader className="bg-gray-800/50">
+                <TableRow className="border-b border-gray-700">
+                  <TableHead className="text-gray-100 font-medium w-12">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all stock entries"
+                      className="bg-gray-800 border-gray-600 rounded text-cyan-500 focus:ring-cyan-500"
+                    />
+                  </TableHead>
+                  <TableHead className="text-gray-100 font-medium">Entry Name</TableHead>
+                  <TableHead className="text-gray-100 font-medium">Type</TableHead>
+                  <TableHead className="text-gray-100 font-medium">Posting Date</TableHead>
+                  <TableHead className="text-gray-100 font-medium">Status</TableHead>
+                  <TableHead className="text-gray-100 font-medium">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStockEntries.map((entry, index) => (
+                  <motion.tr
+                    key={entry.name}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="border-b border-gray-700 hover:bg-gray-800/50"
+                  >
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${entry.name}`}
+                        className="bg-gray-800 border-gray-600 rounded text-cyan-500 focus:ring-cyan-500"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-100">{entry.name}</TableCell>
+                    <TableCell className="text-gray-400">{entry.stock_entry_type}</TableCell>
+                    <TableCell className="text-gray-400">{entry.posting_date}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          entry.docstatus === 0
+                            ? "bg-yellow-900/50 text-yellow-400"
+                            : entry.docstatus === 1
+                            ? "bg-green-900/50 text-green-400"
+                            : "bg-red-900/50 text-red-400"
+                        }`}
+                      >
+                        {entry.docstatus === 0 ? "Draft" : entry.docstatus === 1 ? "Submitted" : "Cancelled"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          className="border-gray-600 text-gray-100 hover:bg-gray-700 rounded-lg"
+                          onClick={() => handleEdit(entry)}
+                          size="sm"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="border-red-500/50 text-red-400 hover:bg-red-900/30 rounded-lg"
+                          onClick={() => handleDelete(entry.name)}
+                          disabled={loading}
+                          size="sm"
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Empty State */}
+          {filteredStockEntries.length === 0 && !error && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No stock entries found matching your filters.</p>
+            </div>
+          )}
+
+          {/* Summary */}
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700">
+            <span className="text-sm text-gray-500">
+              Showing {filteredStockEntries.length} of {stockEntries.length} stock entries
+            </span>
+            <div className="text-sm text-gray-500">
+              Last updated: {new Date().toLocaleDateString()}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

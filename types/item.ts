@@ -26,3 +26,30 @@ export interface Item {
     ordered_qty?: number;
     projected_qty?: number;
   }
+  
+  // For creating a new item
+  export interface ItemCreateRequest {
+    item_code?: string;
+    item_name: string;
+    stock_uom: string;
+    description?: string;
+    item_group?: string;
+    brand?: string;
+    has_serial_no?: 0 | 1;
+    has_batch_no?: 0 | 1;
+    is_stock_item?: 0 | 1;
+  }
+  
+  // For updating an existing item
+  export interface ItemUpdateRequest {
+    item_code?: string;
+    item_name?: string;
+    stock_uom?: string;
+    description?: string;
+    item_group?: string;
+    brand?: string;
+    has_serial_no?: 0 | 1;
+    has_batch_no?: 0 | 1;
+    is_stock_item?: 0 | 1;
+    disabled?: 0 | 1;
+  }
