@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,13 +66,16 @@ export default function StockEntryPage() {
   });
   const [form, setForm] = useState<FormData>({
     stock_entry_type: "",
-    posting_date: new Date().toISOString().split('T')[0], // Default to today
+    posting_date: new Date().toISOString().split("T")[0],
   });
   const [editId, setEditId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { data: stockEntriesData, error } = useSWR<StockEntriesApiResponse, ApiError>("/api/stock-entry?limit=100", fetcher);
+  const { data: stockEntriesData, error } = useSWR<StockEntriesApiResponse, ApiError>(
+    "/api/stock-entry?limit=100",
+    fetcher
+  );
   const stockEntries = stockEntriesData?.data?.stockEntries || [];
 
   const stockEntryTypes = [...new Set(stockEntries.map(entry => entry.stock_entry_type).filter(Boolean))];
@@ -84,10 +87,13 @@ export default function StockEntryPage() {
   const filteredStockEntries = stockEntries.filter((entry) =>
     (filters.name ? entry.name.toLowerCase().includes(filters.name.toLowerCase()) : true) &&
     (filters.stock_entry_type !== "all" ? entry.stock_entry_type === filters.stock_entry_type : true) &&
-    (filters.docstatus !== "all" ?
-      (filters.docstatus === "Draft" ? entry.docstatus === 0 :
-       filters.docstatus === "Submitted" ? entry.docstatus === 1 :
-       entry.docstatus === 2) : true)
+    (filters.docstatus !== "all"
+      ? filters.docstatus === "Draft"
+        ? entry.docstatus === 0
+        : filters.docstatus === "Submitted"
+        ? entry.docstatus === 1
+        : entry.docstatus === 2
+      : true)
   );
 
   const handleFormChange = (field: keyof FormData, value: string) => {
@@ -99,7 +105,11 @@ export default function StockEntryPage() {
   };
 
   const handleSelectChange = (field: keyof FormData, value: string) => {
-    handleFormChange(field, value);
+    if (value === "placeholder") {
+      setForm(prev => ({ ...prev, [field]: "" }));
+    } else {
+      setForm(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,13 +118,14 @@ export default function StockEntryPage() {
       toast({ variant: "error", title: "Error", description: "Stock Entry Type and Posting Date are required." });
       return;
     }
+
     setLoading(true);
     try {
       const payload: StockEntryCreateRequest = {
         stock_entry_type: form.stock_entry_type as 'Material Issue' | 'Material Receipt' | 'Material Transfer',
         posting_date: form.posting_date,
-        items: [], // Add default empty array for items
-        company: "Default Company", // Add a placeholder for company
+        items: [],
+        company: "Default Company",
       };
 
       const url = editId ? `/api/stock-entry?name=${editId}` : '/api/stock-entry';
@@ -180,15 +191,15 @@ export default function StockEntryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-gray-100 p-8 font-sans">
-      <Card className="bg-gray-900/80 border border-gray-700 shadow-xl rounded-xl backdrop-blur-sm">
+    <div className="min-h-screen bg-background text-foreground p-8 font-sans">
+      <Card className="bg-card text-card-foreground border-border shadow-lg rounded-lg">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-cyan-300">Stock Entries Management</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Stock Entries Management</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center mb-6">
             <Button
-              className="bg-cyan-500 text-black hover:bg-cyan-400 border border-cyan-600 rounded-lg transition-all duration-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
               onClick={() => {
                 setForm({ stock_entry_type: "", posting_date: new Date().toISOString().split('T')[0] });
                 setEditId(null);
@@ -204,30 +215,32 @@ export default function StockEntryPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-6 p-6 bg-gray-800/50 border border-gray-700 rounded-lg"
+              className="mb-6 p-6 bg-muted/50 border border-border rounded-lg"
             >
-              <h3 className="text-lg font-medium text-cyan-200 mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 {editId ? "Edit Stock Entry" : "Create New Stock Entry"}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Stock Entry Type *
                   </label>
                   <Select
-                    value={form.stock_entry_type}
+                    value={form.stock_entry_type || "placeholder"}
                     onValueChange={(value) => handleSelectChange("stock_entry_type", value)}
                   >
                     <SelectTrigger
                       aria-label="Select stock entry type"
-                      className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     >
                       <SelectValue placeholder="Select Stock Entry Type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
-                      <SelectItem value="">Select Stock Entry Type</SelectItem>
+                    <SelectContent className="bg-background text-foreground border-border">
+                      <SelectItem value="placeholder" className="hover:bg-accent">
+                        Select Stock Entry Type
+                      </SelectItem>
                       {stockEntryTypes.map((type) => (
-                        <SelectItem key={type} value={type} className="hover:bg-gray-700">
+                        <SelectItem key={type} value={type} className="hover:bg-accent">
                           {type}
                         </SelectItem>
                       ))}
@@ -236,7 +249,7 @@ export default function StockEntryPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Posting Date *
                   </label>
                   <Input
@@ -244,7 +257,7 @@ export default function StockEntryPage() {
                     value={form.posting_date}
                     onChange={(e) => handleInputChange(e, "posting_date")}
                     aria-label="Posting Date"
-                    className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     required
                   />
                 </div>
@@ -252,7 +265,7 @@ export default function StockEntryPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-cyan-500 text-black hover:bg-cyan-400 border border-cyan-600 rounded-lg transition-all duration-200"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
                 >
                   {loading ? "Processing..." : editId ? "Update Stock Entry" : "Create Stock Entry"}
                 </Button>
@@ -261,31 +274,31 @@ export default function StockEntryPage() {
           )}
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-muted/50 border border-border rounded-lg">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Entry Name</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Entry Name</label>
               <Input
                 placeholder="Filter by name"
                 value={filters.name}
                 onChange={(e) => handleFilterChange("name", e.target.value)}
                 aria-label="Filter by Entry Name"
-                className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg"
+                className="bg-background text-foreground border-input rounded-md"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Stock Entry Type</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Stock Entry Type</label>
               <Select
                 value={filters.stock_entry_type}
                 onValueChange={(value) => handleFilterChange("stock_entry_type", value)}
               >
-                <SelectTrigger aria-label="Filter by Stock Entry Type" className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg">
+                <SelectTrigger aria-label="Filter by Stock Entry Type" className="bg-background text-foreground border-input rounded-md">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
-                  <SelectItem value="all" className="hover:bg-gray-700">All Types</SelectItem>
+                <SelectContent className="bg-background text-foreground border-border">
+                  <SelectItem value="all" className="hover:bg-accent">All Types</SelectItem>
                   {stockEntryTypes.map((type) => (
-                    <SelectItem key={type} value={type} className="hover:bg-gray-700">
+                    <SelectItem key={type} value={type} className="hover:bg-accent">
                       {type}
                     </SelectItem>
                   ))}
@@ -294,19 +307,19 @@ export default function StockEntryPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Status</label>
               <Select
                 value={filters.docstatus}
                 onValueChange={(value) => handleFilterChange("docstatus", value)}
               >
-                <SelectTrigger aria-label="Filter by Status" className="bg-gray-800 text-gray-100 border-gray-600 rounded-lg">
+                <SelectTrigger aria-label="Filter by Status" className="bg-background text-foreground border-input rounded-md">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
-                  <SelectItem value="all" className="hover:bg-gray-700">All Status</SelectItem>
-                  <SelectItem value="Draft" className="hover:bg-gray-700">Draft</SelectItem>
-                  <SelectItem value="Submitted" className="hover:bg-gray-700">Submitted</SelectItem>
-                  <SelectItem value="Cancelled" className="hover:bg-gray-700">Cancelled</SelectItem>
+                <SelectContent className="bg-background text-foreground border-border">
+                  <SelectItem value="all" className="hover:bg-accent">All Status</SelectItem>
+                  <SelectItem value="Draft" className="hover:bg-accent">Draft</SelectItem>
+                  <SelectItem value="Submitted" className="hover:bg-accent">Submitted</SelectItem>
+                  <SelectItem value="Cancelled" className="hover:bg-accent">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -314,28 +327,28 @@ export default function StockEntryPage() {
 
           {/* Error State */}
           {error && (
-            <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">
-              <p className="text-red-400">Error loading stock entries: {error.message}</p>
+            <div className="mb-4 p-4 bg-destructive/20 border border-destructive/50 rounded-lg">
+              <p className="text-destructive-foreground">Error loading stock entries: {error.message}</p>
             </div>
           )}
 
           {/* Stock Entries Table */}
-          <div className="overflow-x-auto border border-gray-700 rounded-lg">
+          <div className="overflow-x-auto border border-border rounded-lg">
             <Table>
-              <TableHeader className="bg-gray-800/50">
-                <TableRow className="border-b border-gray-700">
-                  <TableHead className="text-gray-100 font-medium w-12">
+              <TableHeader className="bg-muted/50">
+                <TableRow className="border-b border-border">
+                  <TableHead className="text-foreground font-medium w-12">
                     <input
                       type="checkbox"
                       aria-label="Select all stock entries"
-                      className="bg-gray-800 border-gray-600 rounded text-cyan-500 focus:ring-cyan-500"
+                      className="bg-background border-input rounded text-primary focus:ring-primary"
                     />
                   </TableHead>
-                  <TableHead className="text-gray-100 font-medium">Entry Name</TableHead>
-                  <TableHead className="text-gray-100 font-medium">Type</TableHead>
-                  <TableHead className="text-gray-100 font-medium">Posting Date</TableHead>
-                  <TableHead className="text-gray-100 font-medium">Status</TableHead>
-                  <TableHead className="text-gray-100 font-medium">Actions</TableHead>
+                  <TableHead className="text-foreground font-medium">Entry Name</TableHead>
+                  <TableHead className="text-foreground font-medium">Type</TableHead>
+                  <TableHead className="text-foreground font-medium">Posting Date</TableHead>
+                  <TableHead className="text-foreground font-medium">Status</TableHead>
+                  <TableHead className="text-foreground font-medium">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -345,26 +358,26 @@ export default function StockEntryPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="border-b border-gray-700 hover:bg-gray-800/50"
+                    className="border-b border-border hover:bg-muted/30"
                   >
                     <TableCell>
                       <input
                         type="checkbox"
                         aria-label={`Select ${entry.name}`}
-                        className="bg-gray-800 border-gray-600 rounded text-cyan-500 focus:ring-cyan-500"
+                        className="bg-background border-input rounded text-primary focus:ring-primary"
                       />
                     </TableCell>
-                    <TableCell className="font-medium text-gray-100">{entry.name}</TableCell>
-                    <TableCell className="text-gray-400">{entry.stock_entry_type}</TableCell>
-                    <TableCell className="text-gray-400">{entry.posting_date}</TableCell>
+                    <TableCell className="font-medium text-foreground">{entry.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.stock_entry_type}</TableCell>
+                    <TableCell className="text-muted-foreground">{entry.posting_date}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           entry.docstatus === 0
-                            ? "bg-yellow-900/50 text-yellow-400"
+                            ? "bg-yellow-500/20 text-yellow-400"
                             : entry.docstatus === 1
-                            ? "bg-green-900/50 text-green-400"
-                            : "bg-red-900/50 text-red-400"
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-destructive/20 text-destructive-foreground"
                         }`}
                       >
                         {entry.docstatus === 0 ? "Draft" : entry.docstatus === 1 ? "Submitted" : "Cancelled"}
@@ -374,15 +387,16 @@ export default function StockEntryPage() {
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
-                          className="border-gray-600 text-gray-100 hover:bg-gray-700 rounded-lg"
+                          className="border-input text-foreground hover:bg-accent rounded-md"
                           onClick={() => handleEdit(entry)}
                           size="sm"
+                          disabled={loading}
                         >
                           Edit
                         </Button>
                         <Button
                           variant="outline"
-                          className="border-red-500/50 text-red-400 hover:bg-red-900/30 rounded-lg"
+                          className="border-destructive/50 text-destructive-foreground hover:bg-destructive/20 rounded-md"
                           onClick={() => handleDelete(entry.name)}
                           disabled={loading}
                           size="sm"
@@ -400,16 +414,16 @@ export default function StockEntryPage() {
           {/* Empty State */}
           {filteredStockEntries.length === 0 && !error && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No stock entries found matching your filters.</p>
+              <p className="text-muted-foreground">No stock entries found matching your filters.</p>
             </div>
           )}
 
           {/* Summary */}
-          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700">
-            <span className="text-sm text-gray-500">
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
+            <span className="text-sm text-muted-foreground">
               Showing {filteredStockEntries.length} of {stockEntries.length} stock entries
             </span>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               Last updated: {new Date().toLocaleDateString()}
             </div>
           </div>
