@@ -1,23 +1,22 @@
 // types/item.ts
 export interface Item {
-    name: string;
-    item_code: string;
-    item_name: string;
-    stock_uom?: string;
-    description?: string;
-    item_group?: string;
-    brand?: string;
-    has_serial_no?: 0 | 1;
-    has_batch_no?: 0 | 1;
-    is_stock_item?: 0 | 1;
-    disabled?: 0 | 1;
-    // Standard fields
-    owner?: string;
-    creation?: string;
-    modified?: string;
-    modified_by?: string;
-    docstatus?: 0 | 1 | 2;
-  }
+  name: string;
+  item_code: string;
+  item_name: string;
+  item_group: string;
+  stock_uom: string;
+  is_stock_item: number;
+  is_fixed_asset?: number;
+  brand?: string;
+  disabled?: number;
+  description?: string;
+  // Standard Frappe fields
+  owner?: string;
+  creation?: string;
+  modified?: string;
+  modified_by?: string;
+  docstatus?: 0 | 1 | 2;
+}
   
   // For items with stock information (this would require a separate API call)
   export interface ItemWithStock extends Item {
@@ -29,27 +28,18 @@ export interface Item {
   
   // For creating a new item
   export interface ItemCreateRequest {
-    item_code?: string;
+    item_code: string;
     item_name: string;
+    item_group: string;
     stock_uom: string;
+    is_stock_item: number;
+    is_fixed_asset?: number;
     description?: string;
-    item_group?: string;
     brand?: string;
-    has_serial_no?: 0 | 1;
-    has_batch_no?: 0 | 1;
-    is_stock_item?: 0 | 1;
   }
   
+  
   // For updating an existing item
-  export interface ItemUpdateRequest {
-    item_code?: string;
-    item_name?: string;
-    stock_uom?: string;
-    description?: string;
-    item_group?: string;
-    brand?: string;
-    has_serial_no?: 0 | 1;
-    has_batch_no?: 0 | 1;
-    is_stock_item?: 0 | 1;
-    disabled?: 0 | 1;
+  export interface ItemUpdateRequest extends Partial<ItemCreateRequest> {
+    name: string;
   }
