@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,9 +32,9 @@ interface CustomStockEntryItem extends StockEntryItem {
 
 interface FormData {
   naming_series: string;
-  stock_entry_type: "Material Issue" | "Material Receipt" | "Material Transfer" | ""; // Explicitly use allowed types
+  stock_entry_type: "Material Issue" | "Material Receipt" | "Material Transfer" | "";
   company: string;
-  posting_date: string; // Added posting_date
+  posting_date: string;
   items: CustomStockEntryItem[];
 }
 
@@ -55,10 +55,9 @@ export default function AddStockEntryPage() {
   const { push: toast } = useToast();
   const [form, setForm] = useState<FormData>({
     naming_series: "MAT-STE-.YYYY.-",
-    stock_entry_type: "", // Empty by default
+    stock_entry_type: "",
     company: "Ma Beignet (Demo)",
-    posting_date: new Date().toISOString().split('T')[0], // Default to current date
-    // ✅ Initialize with both warehouse fields
+    posting_date: new Date().toISOString().split('T')[0],
     items: [{ item_code: "", qty: 0, basic_rate: 0, source_warehouse: "", target_warehouse: "" }],
   });
   const [loading, setLoading] = useState<boolean>(false);
@@ -104,7 +103,6 @@ export default function AddStockEntryPage() {
     setForm((prev) => ({ ...prev, items: updatedItems }));
   };
 
-
   const addItem = () => {
     setForm((prev) => ({
       ...prev,
@@ -126,27 +124,25 @@ export default function AddStockEntryPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ Enhanced validation based on stock_entry_type
     if (!form.stock_entry_type) {
       toast({ variant: "error", title: "Validation Error", description: "Please select a Stock Entry Type." });
       return;
     }
     const hasMissingFields = form.items.some(item => {
-        const isBaseInvalid = !item.item_code || item.qty <= 0 || item.basic_rate < 0;
-        if (isBaseInvalid) return true;
-      
-        switch (form.stock_entry_type) {
-          case "Material Issue":
-            return !item.source_warehouse?.trim();
-          case "Material Receipt":
-            return !item.target_warehouse?.trim();  // <-- must be filled per item
-          case "Material Transfer":
-            return !item.source_warehouse?.trim() || !item.target_warehouse?.trim();
-          default:
-            return false;
-        }
-      });
-      
+      const isBaseInvalid = !item.item_code || item.qty <= 0 || item.basic_rate < 0;
+      if (isBaseInvalid) return true;
+    
+      switch (form.stock_entry_type) {
+        case "Material Issue":
+          return !item.source_warehouse?.trim();
+        case "Material Receipt":
+          return !item.target_warehouse?.trim();
+        case "Material Transfer":
+          return !item.source_warehouse?.trim() || !item.target_warehouse?.trim();
+        default:
+          return false;
+      }
+    });
 
     if (hasMissingFields) {
       toast({
@@ -157,12 +153,10 @@ export default function AddStockEntryPage() {
       return;
     }
 
-
     setLoading(true);
     try {
-      // ✅ Dynamically build the payload based on stock_entry_type
       const payload: StockEntryCreateRequest = {
-        stock_entry_type: form.stock_entry_type ,
+        stock_entry_type: form.stock_entry_type,
         posting_date: form.posting_date,
         company: form.company,
         items: form.items.map(item => {
@@ -208,7 +202,6 @@ export default function AddStockEntryPage() {
         variant: "success",
       });
 
-      // Optionally reset form or redirect
       setForm({
         naming_series: "MAT-STE-.YYYY.-",
         stock_entry_type: "",
@@ -216,7 +209,7 @@ export default function AddStockEntryPage() {
         posting_date: new Date().toISOString().split('T')[0],
         items: [{ item_code: "", qty: 0, basic_rate: 0, source_warehouse: "", target_warehouse: "" }],
       });
-    } catch (error: Error) { // Explicitly type error as Error
+    } catch (error: Error) {
       toast({
         title: "Error Creating Stock Entry",
         description: error.message || "An unexpected error occurred.",
@@ -228,12 +221,29 @@ export default function AddStockEntryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-gray-100 p-8 font-sans">
-      <Card className="bg-gray-900/80 border border-gray-700 shadow-xl rounded-xl backdrop-blur-sm max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground p-8 font-sans">
+      {/* Breadcrumb */}
+      <div className="mb-4 text-sm text-muted-foreground flex items-center space-x-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4 text-primary"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+          />
+        </svg>
+        <span className="text-primary hover:underline cursor-pointer">Home</span>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-primary hover:underline cursor-pointer">Stock</span>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-primary hover:underline cursor-pointer">Add Stock Entry</span>
+      </div>
+
+      <Card className="bg-card text-card-foreground border-border shadow-lg rounded-lg">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-cyan-300">
-            Add New Stock Entry
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Add New Stock Entry</CardTitle>
         </CardHeader>
         <CardContent>
           <motion.form
@@ -243,10 +253,9 @@ export default function AddStockEntryPage() {
             onSubmit={handleSubmit}
             className="space-y-6"
           >
-            {/* Naming Series, Stock Entry Type, Company Selects (unchanged) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Naming Series *
                 </label>
                 <Select
@@ -254,12 +263,12 @@ export default function AddStockEntryPage() {
                   onValueChange={(value) => handleFormChange("naming_series", value)}
                 >
                   <SelectTrigger
-                    className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                   >
                     <SelectValue placeholder="Select Naming Series" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
-                    <SelectItem value="MAT-STE-.YYYY.-" className="hover:bg-gray-700">
+                  <SelectContent className="bg-background text-foreground border-border">
+                    <SelectItem value="MAT-STE-.YYYY.-" className="hover:bg-accent">
                       MAT-STE-.YYYY.-
                     </SelectItem>
                   </SelectContent>
@@ -267,7 +276,7 @@ export default function AddStockEntryPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Stock Entry Type *
                 </label>
                 <Select
@@ -275,13 +284,13 @@ export default function AddStockEntryPage() {
                   onValueChange={(value) => handleFormChange("stock_entry_type", value)}
                 >
                   <SelectTrigger
-                    className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                   >
                     <SelectValue placeholder="Select Stock Entry Type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
+                  <SelectContent className="bg-background text-foreground border-border">
                     {stockEntryTypes.map((type) => (
-                      <SelectItem key={type} value={type} className="hover:bg-gray-700">
+                      <SelectItem key={type} value={type} className="hover:bg-accent">
                         {type}
                       </SelectItem>
                     ))}
@@ -290,7 +299,7 @@ export default function AddStockEntryPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Company *
                 </label>
                 <Select
@@ -298,12 +307,12 @@ export default function AddStockEntryPage() {
                   onValueChange={(value) => handleFormChange("company", value)}
                 >
                   <SelectTrigger
-                    className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                   >
                     <SelectValue placeholder="Select Company" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 text-gray-100 border-gray-600">
-                    <SelectItem value="Ma Beignet (Demo)" className="hover:bg-gray-700">
+                  <SelectContent className="bg-background text-foreground border-border">
+                    <SelectItem value="Ma Beignet (Demo)" className="hover:bg-accent">
                       Ma Beignet (Demo)
                     </SelectItem>
                   </SelectContent>
@@ -312,27 +321,27 @@ export default function AddStockEntryPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Items *
               </label>
               {form.items.map((item, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 p-4 bg-gray-800/50 rounded-lg"
+                  className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 p-4 bg-muted/50 border border-border rounded-lg"
                 >
                   <div className="md:col-span-3">
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       Item Code *
                     </label>
                     <Input
                       placeholder="e.g., ITEM-001"
                       value={item.item_code}
                       onChange={(e) => handleItemChange(index, "item_code", e.target.value)}
-                      className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       Quantity *
                     </label>
                     <Input
@@ -340,11 +349,11 @@ export default function AddStockEntryPage() {
                       placeholder="Qty"
                       value={item.qty}
                       onChange={(e) => handleItemChange(index, "qty", Number(e.target.value))}
-                      className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                       Basic Rate *
                     </label>
                     <Input
@@ -352,35 +361,34 @@ export default function AddStockEntryPage() {
                       placeholder="Rate"
                       value={item.basic_rate}
                       onChange={(e) => handleItemChange(index, "basic_rate", Number(e.target.value))}
-                      className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     />
                   </div>
 
-                  {/* ✅ DYNAMIC WAREHOUSE FIELDS */}
                   {["Material Issue", "Material Transfer"].includes(form.stock_entry_type) && (
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">
                         Source Wh. *
                       </label>
                       <Input
                         placeholder="e.g., Stores - MB"
                         value={item.source_warehouse}
                         onChange={(e) => handleItemChange(index, "source_warehouse", e.target.value)}
-                        className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                        className="bg-background text-foreground border-input focus:border-primary rounded-md"
                       />
                     </div>
                   )}
 
                   {["Material Receipt", "Material Transfer"].includes(form.stock_entry_type) && (
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">
                         Target Wh. *
                       </label>
                       <Input
                         placeholder="e.g., Stores - MB"
                         value={item.target_warehouse}
                         onChange={(e) => handleItemChange(index, "target_warehouse", e.target.value)}
-                        className="bg-gray-800 text-gray-100 border-gray-600 focus:border-cyan-500 rounded-lg"
+                        className="bg-background text-foreground border-input focus:border-primary rounded-md"
                       />
                     </div>
                   )}
@@ -389,7 +397,7 @@ export default function AddStockEntryPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full border-red-500/50 text-red-400 hover:bg-red-900/30 rounded-lg"
+                      className="border-destructive/50 text-destructive-foreground hover:bg-destructive/20 rounded-md"
                       onClick={() => removeItem(index)}
                       disabled={form.items.length === 1}
                     >
@@ -400,7 +408,7 @@ export default function AddStockEntryPage() {
               ))}
               <Button
                 type="button"
-                className="bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-700 rounded-lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
                 onClick={addItem}
               >
                 Add Item
@@ -410,7 +418,7 @@ export default function AddStockEntryPage() {
             <Button
               type="submit"
               disabled={loading || !form.stock_entry_type}
-              className="w-full bg-cyan-500 text-black hover:bg-cyan-400 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-all duration-200"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
             >
               {loading ? "Processing..." : "Create Stock Entry"}
             </Button>

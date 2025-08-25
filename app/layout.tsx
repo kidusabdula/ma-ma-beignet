@@ -18,11 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="m-0 p-0 bg-[#0f0f0f] overflow-auto min-h-screen">
         <div
           className="origin-top-left"
-          style={{
-            transform: "scale(0.9)",
-            width: "111.1111vw", // Compensates for 90% scale width
-            transformOrigin: "0 0",
-          }}
+          // style={{
+          //   transform: "scale(0.9)",
+          //   width: "111.1111vw", // Compensates for 90% scale width
+          //   transformOrigin: "0 0",
+          // }}
         >
           <ToastProvider>
             <LayoutComponent>{children}</LayoutComponent>

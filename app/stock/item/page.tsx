@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { useToast } from "@/components/ui/toast";
 import { motion } from "framer-motion";
 import useSWR, { mutate } from "swr";
 import { useState, ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 
 // Type definitions
 interface Item {
@@ -72,6 +74,7 @@ const fetcher = async (url: string): Promise<ItemsApiResponse> => {
 
 export default function ItemPage() {
   const { push: toast } = useToast();
+  const router = useRouter();
   const [filters, setFilters] = useState<Filters>({
     name: "",
     group: "all",
@@ -179,8 +182,6 @@ export default function ItemPage() {
   };
 
   const handleDelete = async (name: string) => {
-    // Replaced confirm with a direct action for this example.
-    // In a real app, you'd use a custom modal for confirmation.
     setLoading(true);
     try {
       const response = await fetch(`/api/items?name=${name}`, {
@@ -203,38 +204,50 @@ export default function ItemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <Card className="bg-black border border-gray-800 shadow-lg rounded-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl text-white font-semibold">Items Management</CardTitle>
+    <div className="min-h-screen bg-background text-foreground p-8 font-sans">
+      {/* Breadcrumb */}
+      <div className="mb-4 text-sm text-muted-foreground flex items-center space-x-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4 text-primary"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+          />
+        </svg>
+        <span className="text-primary hover:underline cursor-pointer">Home</span>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-primary hover:underline cursor-pointer">Stock</span>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-muted-foreground">Items</span>
+      </div>
+
+      <Card className="bg-card text-card-foreground border-border shadow-lg rounded-lg">
+        <CardHeader className="flex justify-between items-center">
+          <CardTitle className="text-2xl font-bold text-primary">Items Management</CardTitle>
+          <Button
+            className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
+            onClick={() => router.push('/stock/item/add-item')}
+          >
+            Add New Item
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-between items-center mb-6">
-            <Button
-              className="bg-white text-black hover:bg-gray-200 border border-gray-700 rounded-md"
-              onClick={() => {
-                setForm({ item_name: "", item_group: "", stock_uom: "", disabled: false });
-                setEditId(null);
-                setIsFormOpen(!isFormOpen);
-              }}
-            >
-              {isFormOpen ? "Cancel" : "Add New Item"}
-            </Button>
-          </div>
-
           {isFormOpen && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-6 p-6 bg-gray-900/50 border border-gray-800 rounded-lg"
+              className="mb-6 p-6 bg-muted/50 border border-border rounded-lg"
             >
-              <h3 className="text-lg font-medium text-white mb-4">
+              <h3 className="text-lg font-medium text-foreground mb-4">
                 {editId ? "Edit Item" : "Create New Item"}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Item Name *
                   </label>
                   <Input
@@ -242,13 +255,13 @@ export default function ItemPage() {
                     value={form.item_name}
                     onChange={(e) => handleInputChange(e, "item_name")}
                     aria-label="Item Name"
-                    className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Item Group *
                   </label>
                   <Select
@@ -257,14 +270,13 @@ export default function ItemPage() {
                   >
                     <SelectTrigger
                       aria-label="Select item group"
-                      className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     >
                       <SelectValue placeholder="Select Item Group" />
                     </SelectTrigger>
-                    <SelectContent className="bg-black text-white border-gray-700">
-                      <SelectItem value="">Select Item Group</SelectItem>
+                    <SelectContent className="bg-background text-foreground border-border">
                       {itemGroups.map((group) => (
-                        <SelectItem key={group} value={group} className="focus:bg-gray-800">
+                        <SelectItem key={group} value={group} className="hover:bg-accent">
                           {group}
                         </SelectItem>
                       ))}
@@ -273,7 +285,7 @@ export default function ItemPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Stock Unit of Measure *
                   </label>
                   <Input
@@ -281,13 +293,13 @@ export default function ItemPage() {
                     value={form.stock_uom}
                     onChange={(e) => handleInputChange(e, "stock_uom")}
                     aria-label="Stock UOM"
-                    className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                    className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1">
                     Status
                   </label>
                   <Select
@@ -296,13 +308,13 @@ export default function ItemPage() {
                   >
                     <SelectTrigger
                       aria-label="Select status"
-                      className="bg-black text-white border-gray-700 focus:border-white rounded-md"
+                      className="bg-background text-foreground border-input focus:border-primary rounded-md"
                     >
                       <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
-                    <SelectContent className="bg-black text-white border-gray-700">
-                      <SelectItem value="Enabled" className="focus:bg-gray-800">Enabled</SelectItem>
-                      <SelectItem value="Disabled" className="focus:bg-gray-800">Disabled</SelectItem>
+                    <SelectContent className="bg-background text-foreground border-border">
+                      <SelectItem value="Enabled" className="hover:bg-accent">Enabled</SelectItem>
+                      <SelectItem value="Disabled" className="hover:bg-accent">Disabled</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -310,7 +322,7 @@ export default function ItemPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-white text-black hover:bg-gray-200 border border-gray-700 rounded-md"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 border-border rounded-md transition-colors"
                 >
                   {loading ? "Processing..." : editId ? "Update Item" : "Create Item"}
                 </Button>
@@ -318,93 +330,92 @@ export default function ItemPage() {
             </motion.div>
           )}
 
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Item Name</label>
-              <Input
-                placeholder="Filter by name"
-                value={filters.name}
-                onChange={(e) => handleFilterChange("name", e.target.value)}
-                aria-label="Filter by Item Name"
-                className="bg-black text-white border-gray-700 rounded-md"
-              />
-            </div>
+          <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Item Name</label>
+                <Input
+                  placeholder="Filter by name"
+                  value={filters.name}
+                  onChange={(e) => handleFilterChange("name", e.target.value)}
+                  aria-label="Filter by Item Name"
+                  className="bg-background text-foreground border-input rounded-md"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Item Group</label>
-              <Select
-                value={filters.group}
-                onValueChange={(value) => handleFilterChange("group", value)}
-              >
-                <SelectTrigger aria-label="Filter by Item Group" className="bg-black text-white border-gray-700 rounded-md">
-                  <SelectValue placeholder="All Groups" />
-                </SelectTrigger>
-                <SelectContent className="bg-black text-white border-gray-700">
-                  <SelectItem value="all" className="focus:bg-gray-800">All Groups</SelectItem>
-                  {itemGroups.map((group) => (
-                    <SelectItem key={group} value={group} className="focus:bg-gray-800">
-                      {group}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Item Group</label>
+                <Select
+                  value={filters.group}
+                  onValueChange={(value) => handleFilterChange("group", value)}
+                >
+                  <SelectTrigger aria-label="Filter by Item Group" className="bg-background text-foreground border-input rounded-md">
+                    <SelectValue placeholder="All Groups" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background text-foreground border-border">
+                    <SelectItem value="all" className="hover:bg-accent">All Groups</SelectItem>
+                    {itemGroups.map((group) => (
+                      <SelectItem key={group} value={group} className="hover:bg-accent">
+                        {group}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
-              <Select
-                value={filters.status}
-                onValueChange={(value) => handleFilterChange("status", value)}
-              >
-                <SelectTrigger aria-label="Filter by Status" className="bg-black text-white border-gray-700 rounded-md">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-black text-white border-gray-700">
-                  <SelectItem value="all" className="focus:bg-gray-800">All Status</SelectItem>
-                  <SelectItem value="Enabled" className="focus:bg-gray-800">Enabled</SelectItem>
-                  <SelectItem value="Disabled" className="focus:bg-gray-800">Disabled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Status</label>
+                <Select
+                  value={filters.status}
+                  onValueChange={(value) => handleFilterChange("status", value)}
+                >
+                  <SelectTrigger aria-label="Filter by Status" className="bg-background text-foreground border-input rounded-md">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background text-foreground border-border">
+                    <SelectItem value="all" className="hover:bg-accent">All Status</SelectItem>
+                    <SelectItem value="Enabled" className="hover:bg-accent">Enabled</SelectItem>
+                    <SelectItem value="Disabled" className="hover:bg-accent">Disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">ID</label>
-              <Input
-                placeholder="Filter by ID"
-                value={filters.id}
-                onChange={(e) => handleFilterChange("id", e.target.value)}
-                aria-label="Filter by ID"
-                className="bg-black text-white border-gray-700 rounded-md"
-              />
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">ID</label>
+                <Input
+                  placeholder="Filter by ID"
+                  value={filters.id}
+                  onChange={(e) => handleFilterChange("id", e.target.value)}
+                  aria-label="Filter by ID"
+                  className="bg-background text-foreground border-input rounded-md"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Error State */}
           {error && (
-            <div className="mb-4 p-4 bg-red-900/50 border border-red-500/30 rounded-lg">
-              <p className="text-red-400">Error loading items: {error.message}</p>
+            <div className="mb-4 p-4 bg-destructive/20 border border-destructive/50 rounded-lg">
+              <p className="text-destructive-foreground">Error loading items: {error.message}</p>
             </div>
           )}
 
-          {/* Items Table */}
-          <div className="overflow-x-auto border border-gray-800 rounded-lg">
+          <div className="overflow-x-auto border border-border rounded-lg">
             <Table>
-              <TableHeader className="bg-gray-900/50">
-                <TableRow className="border-b border-gray-800">
-                  <TableHead className="text-white font-medium w-12">
+              <TableHeader className="bg-muted/50">
+                <TableRow className="border-b border-border">
+                  <TableHead className="text-foreground font-medium w-12">
                     <input
                       type="checkbox"
                       aria-label="Select all items"
-                      className="bg-black border-gray-600 rounded text-white focus:ring-white"
+                      className="bg-background border-input rounded text-primary focus:ring-primary"
                     />
                   </TableHead>
-                  <TableHead className="text-white font-medium">Item Name</TableHead>
-                  <TableHead className="text-white font-medium">Status</TableHead>
-                  <TableHead className="text-white font-medium">Item Group</TableHead>
-                  <TableHead className="text-white font-medium">Item Code</TableHead>
-                  <TableHead className="text-white font-medium">UOM</TableHead>
-                  <TableHead className="text-white font-medium">Actions</TableHead>
+                  <TableHead className="text-foreground font-medium">Item Name</TableHead>
+                  <TableHead className="text-foreground font-medium">Status</TableHead>
+                  <TableHead className="text-foreground font-medium">Item Group</TableHead>
+                  <TableHead className="text-foreground font-medium">Item Code</TableHead>
+                  <TableHead className="text-foreground font-medium">UOM</TableHead>
+                  <TableHead className="text-foreground font-medium">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -414,35 +425,35 @@ export default function ItemPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="border-b border-gray-800 hover:bg-gray-900"
+                    className="border-b border-border hover:bg-muted/30"
                   >
                     <TableCell>
                       <input
                         type="checkbox"
                         aria-label={`Select ${item.item_name}`}
-                        className="bg-black border-gray-600 rounded text-white focus:ring-white"
+                        className="bg-background border-input rounded text-primary focus:ring-primary"
                       />
                     </TableCell>
-                    <TableCell className="font-medium text-white">{item.item_name}</TableCell>
+                    <TableCell className="font-medium text-foreground">{item.item_name}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
                           item.disabled
-                            ? "bg-gray-700 text-gray-300"
-                            : "bg-green-900/50 text-green-400"
+                            ? "bg-destructive/20 text-destructive-foreground"
+                            : "bg-green-500/20 text-green-400"
                         }`}
                       >
                         {item.disabled ? "Disabled" : "Enabled"}
                       </span>
                     </TableCell>
-                    <TableCell className="text-gray-400">{item.item_group}</TableCell>
-                    <TableCell className="font-mono text-sm text-gray-500">{item.item_code}</TableCell>
-                    <TableCell className="text-gray-400">{item.stock_uom}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.item_group}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{item.item_code}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.stock_uom}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
-                          className="border-gray-700 text-white hover:bg-gray-800 rounded-md"
+                          className="border-input text-foreground hover:bg-accent rounded-md"
                           onClick={() => handleEdit(item)}
                           size="sm"
                         >
@@ -450,7 +461,7 @@ export default function ItemPage() {
                         </Button>
                         <Button
                           variant="outline"
-                          className="border-red-500/50 text-red-500 hover:bg-red-900/20 rounded-md"
+                          className="border-destructive/50 text-destructive-foreground hover:bg-destructive/20 rounded-md"
                           onClick={() => handleDelete(item.name)}
                           disabled={loading}
                           size="sm"
@@ -465,19 +476,17 @@ export default function ItemPage() {
             </Table>
           </div>
 
-          {/* Empty State */}
           {filteredItems.length === 0 && !error && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No items found matching your filters.</p>
+              <p className="text-muted-foreground">No items found matching your filters.</p>
             </div>
           )}
 
-          {/* Summary */}
-          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-800">
-            <span className="text-sm text-gray-500">
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
+            <span className="text-sm text-muted-foreground">
               Showing {filteredItems.length} of {items.length} items
             </span>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               Last updated: {new Date().toLocaleDateString()}
             </div>
           </div>
@@ -486,4 +495,3 @@ export default function ItemPage() {
     </div>
   );
 }
-                    
