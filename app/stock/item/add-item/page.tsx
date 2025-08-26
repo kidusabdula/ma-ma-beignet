@@ -27,9 +27,6 @@ interface FormData {
   brand?: string;
 }
 
-interface ApiError extends Error {
-  message: string;
-}
 
 export default function AddItemPage() {
   const { push: toast } = useToast();

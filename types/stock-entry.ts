@@ -2,7 +2,7 @@ export interface StockEntryItem {
     item_code: string;
     qty: number;
     s_warehouse?: string; // Source warehouse for Material Issue/Transfer
-    target_warehouse?: string; // Target warehouse for Material Receipt/Transfer
+    t_warehouse?: string; // Target warehouse for Material Receipt/Transfer
     serial_no?: string;   // Optional for serialized items
     batch_no?: string;    // Optional for batched items
     basic_rate: number;  // Cost per unit
@@ -43,4 +43,17 @@ export interface StockEntryItem {
   
   export interface StockEntryUpdateRequest extends Partial<StockEntryCreateRequest> {
     name?: string;
+  }
+
+  export interface ManufactureStockEntryRequest {
+    work_order: string;
+    finished_item: string;
+    finished_qty: number;
+    finished_warehouse: string;
+    consumed_items: Array<{
+      item_code: string;
+      qty: number;
+      source_warehouse: string;
+    }>;
+    posting_date: string;
   }

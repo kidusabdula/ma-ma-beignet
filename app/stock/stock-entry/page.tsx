@@ -22,7 +22,7 @@ import { useToast } from "@/components/ui/toast";
 import { motion } from "framer-motion";
 import useSWR, { mutate } from "swr";
 import { useState, ChangeEvent } from "react";
-import { StockEntry, StockEntryCreateRequest } from "@/types/stock-entry";
+import { StockEntry } from "@/types/stock-entry";
 import { useRouter } from "next/navigation";
 
 // Type definitions
@@ -217,11 +217,6 @@ export default function StockEntryPage() {
                   <TableHead className="text-foreground font-medium">Start Date</TableHead>
                   <TableHead className="text-foreground font-medium">End Date</TableHead>
                   <TableHead className="text-foreground font-medium">Description</TableHead>
-                  {/* <TableHead className="text-foreground font-medium">Bill Number</TableHead>
-                  <TableHead className="text-foreground font-medium">Initial Value</TableHead>
-                  <TableHead className="text-foreground font-medium">Current Value</TableHead>
-                  <TableHead className="text-foreground font-medium">Department</TableHead>
-                  <TableHead className="text-foreground font-medium">Vendor</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
